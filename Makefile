@@ -1,4 +1,4 @@
-.PHONY: run
+da.PHONY: run
 
 run:
 	run-project -l python3 &\

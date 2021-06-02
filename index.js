@@ -3,7 +3,6 @@ const db = require('better-sqlite3')('./database/partyshare.db');
 db.pragma('journal_mode = WAL');
 
 //Express
-const cors = require('cors');
 const express = require('express');
 var bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser')
@@ -21,10 +20,8 @@ const caching = require("./assets/cache")
 
 //Express Setup
 const app = express();
-app.use(cors());
 app.use(cookieParser())
 app.set('view engine', 'ejs');
-app.options('*', cors());
 var body = bodyParser.json()
 app.use('/views', express.static('views'));
 
@@ -34,21 +31,40 @@ admin.initializeApp({
 	storageBucket: process.env.BUCKET_URL
 });
 
-//c4eeb4f2-1912-484af-9e5-1 product Id
-
 //Variables
 const cache = new caching.Cache()
 const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
 app.locals.bucket = admin.storage().bucket()
 
 
+//Reviews are on Google Firebase
+//Replit servers are 4 hours ahead
+
 //HTML Routes
 app.get("/", (req, res) => {
+	console.time()
 	let account = req.cookies.token || undefined;
-	res.send(`Unfinished`)
+	let explore=cache.get("explore",()=>{return db.prepare("SELECT * FROM products LIMIT 15").all()},900000)
+	res.render("homepage/index",{products:explore,account:account})
+	console.log(`GET /`)
+	console.timeEnd()
+	console.log(new Date())
+	console.log("")
 })
 app.get("/checkout/:id",(req,res)=>{
-	res.render("checkout/index")
+	res.render("checkout/index",{rand:Math.trunc(Math.random()*100)})
+})
+//Temp path
+app.get("/upload",(req,res)=>{
+	 res.send(`<form method="POST" action="/api/products/new" enctype="multipart/form-data">
+    <div>
+        <label>Select your profile picture:</label>
+        <input type="file" name="profile_pic" />
+    </div>
+    <div>
+        <input type="submit" name="btn_upload_profile_pic" value="Upload" />
+    </div>
+</form>`)
 })
 
 //API Routes
@@ -60,7 +76,12 @@ app.get("/api/products/:id/", (req, res) => {
 	res.send(productMetadata)
 	console.log(`GET ${req.params.id}`)
 	console.timeEnd()
+	console.log(new Date())
 	console.log("")
+})
+app.get("/api/products",(req,res)=>{
+	let products=db.prepare("SELECT * FROM products").all();
+	res.json(products)
 })
 
 
@@ -76,6 +97,7 @@ app.post("/api/products/:id/update/pricing", body, (req, res) => {
 app.post("/api/products/new", body, upload.single('profile_pic'), async (req, res) => {
 	let ext = utils.getExt(req.file.originalname)
 	let name = utils.computeHash(req.file.originalname + Math.random()) + ext
+	name.replace("/","|")
 	//Insert into DB next
 	await app.locals.bucket.file(name).createWriteStream().end(req.file.buffer)
 	res.json({ status: "200 OK" })
