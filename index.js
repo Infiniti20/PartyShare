@@ -44,16 +44,22 @@ app.locals.bucket = admin.storage().bucket()
 app.get("/", (req, res) => {
 	console.time()
 	let account = req.cookies.token || undefined;
-	let explore=cache.get("explore",()=>{return db.prepare("SELECT * FROM products LIMIT 15").all()},900000)
-	res.render("homepage/index",{products:explore,account:account})
+
+	//Explore cache of first 15 available items
+	let explore=cache.get("explore",()=>{return db.prepare("SELECT * FROM products WHERE returned IS null LIMIT 15").all()},900000)
+	//Rendering the homepage
+	res.render("homepage/index",{products:explore})
 	console.log(`GET /`)
 	console.timeEnd()
 	console.log(new Date())
 	console.log("")
 })
-app.get("/checkout/:id",(req,res)=>{
-	res.render("checkout/index",{rand:Math.trunc(Math.random()*100)})
+
+app.get("/products/:id",(req,res)=>{
+	let product=cache.get(req.params.id,()=>{return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id)},900000)
+	res.render("products/index",{product:product})
 })
+
 //Temp path
 app.get("/upload",(req,res)=>{
 	 res.send(`<form method="POST" action="/api/products/new" enctype="multipart/form-data">
@@ -79,6 +85,7 @@ app.get("/api/products/:id/", (req, res) => {
 	console.log(new Date())
 	console.log("")
 })
+
 app.get("/api/products",(req,res)=>{
 	let products=db.prepare("SELECT * FROM products").all();
 	res.json(products)

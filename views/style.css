@@ -27,7 +27,8 @@
  color:var(--white);
  justify-self: start;
  margin-left:20px;
- padding: 0 50px 0 0;
+ margin-right:50px;
+ /* padding: 0 50px 0 0; */
  cursor: pointer;
  font-family:'Sacramento';
  font-weight: 400;
@@ -93,6 +94,7 @@
 		line-height:60px;
 		width:100%;
 		display:table;
+		z-index:5;
 	}
 	.nav-links:hover{
 		background:var(--selected);
@@ -127,29 +129,30 @@
 	#mobile-menu.active .bar:nth-child(3){
 		transform:translateY(-8px) rotate(135deg);
 	}
-	#product-bar{
+	body#home #product-bar{
 		overflow-y: scroll;
 		white-space: nowrap;
 	}
-	#product-bar .product:nth-child(1){
-		margin-left:2%;
-	}
-	#product-bar .product:last-child{
-		margin-right:2%;
-	}
 }
-#product-bar{
+
+body#home #product-bar.home{
 	font-size:0;
 }
-#product-bar::-webkit-scrollbar{
+body#home #product-bar::-webkit-scrollbar{
 	display: none;
 }
-.product-header{
+body#home #product-bar .product-container:nth-child(1){
+	margin-left:10px;
+}
+body#home #product-bar .product-container:last-child{
+	margin-right:10px;
+}
+body#home .product-header{
 	font-size:30px;
 	margin:10px;
 	margin-top:30px;
 }
-.product{
+body#home .product-container{
 	width: 200px;
 	height: min-content;
 	overflow: hidden;
@@ -157,31 +160,33 @@
 	border: 1px #dddddd solid;
 	cursor: pointer;
 	display:inline-block;
-  margin: 1%;
+  margin: 5px;
 }
-.product-image{
+body#home .product-image{
 	width: 200px;
   height: 200px;
   object-fit: cover;
 }
-.info{
+body#home .info{
 	margin-bottom: 5px;
 	margin-top: 5px;
 }
-.product-title{
+body#home .product-title{
 	margin: 10px 0 0 10px;
 	font-weight: 500;
 	font-size: 18px;
 }
-.price-main{
+body#home .price-main{
 	margin:5px 0 0 10px;
 	font-size:30px;
 }
-.price-main span{
+body#home .price-main span{
 	margin-right:1px;
 }
-.price-sup{
+body#home .price-sup{
 	font-size: 20px;
+	z-index:-1;
 	position: relative;
 	left: -5px;
 }
+
