@@ -65,7 +65,7 @@ app.get("/upload",(req,res)=>{
 	 res.send(`<form method="POST" action="/api/products/new" enctype="multipart/form-data">
     <div>
         <label>Select your profile picture:</label>
-        <input type="file" name="profile_pic" />
+        <input type="file" name="product_image" />
     </div>
     <div>
         <input type="submit" name="btn_upload_profile_pic" value="Upload" />
@@ -93,15 +93,7 @@ app.get("/api/products",(req,res)=>{
 
 
 //POST Routes
-app.post("/api/products/:id/update/details", body, (req, res) => {
-	db.prepare("UPDATE products SET name = ?, desc = ?, image = ? WHERE uuid = ?").run(req.body.name, req.body.desc, req.body.image, req.params.id)
-})
-
-app.post("/api/products/:id/update/pricing", body, (req, res) => {
-	db.prepare("UPDATE products SET cost = ?, quantity = ? WHERE uuid = ?").run(req.body.cost, req.body.quantity, req.params.id)
-})
-
-app.post("/api/products/new", body, upload.single('profile_pic'), async (req, res) => {
+app.post("/api/products/new", body, upload.single('product_image'), async (req, res) => {
 	let ext = utils.getExt(req.file.originalname)
 	let name = utils.computeHash(req.file.originalname + Math.random()) + ext
 	name.replace("/","|")

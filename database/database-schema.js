@@ -3,6 +3,7 @@
  user, varchar(100), username for user
  password, varchar(255), SHA256 hash 
  email, varchar(90), email for inquiries
+ phone, varchar(18), phone number for contacting
 
 `PRODUCTS TABLE`
  userId, varchar(25), foreign key for finding products by user
@@ -22,7 +23,8 @@ db.prepare(`CREATE TABLE users (
 	userId varchar(25) PRIMARY KEY,
 	user varchar(100),
 	password varchar(25),
-	email varchar(90)
+	email varchar(90),
+	phone varchar(18)
 )`).run()
 
 db.prepare(`CREATE TABLE products (
@@ -43,7 +45,7 @@ db.prepare(`CREATE TABLE products (
 let userUUID=utils.generateUUID()
 let pass=utils.computeHash("password")
 
-db.prepare(`INSERT INTO user VALUES(
+db.prepare(`INSERT INTO users VALUES(
 	?,
 	'John Doe',
 	?,
