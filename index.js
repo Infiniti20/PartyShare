@@ -36,7 +36,6 @@ const cache = new caching.Cache()
 const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
 app.locals.bucket = admin.storage().bucket()
 
-
 //Reviews are on Google Firebase
 //Replit servers are 4 hours ahead
 
@@ -46,7 +45,7 @@ app.get("/", (req, res) => {
 	let account = req.cookies.token || undefined;
 
 	//Explore cache of first 15 available items
-	let explore=cache.get("explore",()=>{return db.prepare("SELECT * FROM products WHERE returned IS null LIMIT 15").all()},900000)
+	let explore=cache.get("explore",()=>{return db.prepare("SELECT * FROM products").all()},900000)
 	//Rendering the homepage
 	res.render("homepage/index",{products:explore})
 	console.log(`GET /`)
@@ -56,8 +55,13 @@ app.get("/", (req, res) => {
 })
 
 app.get("/products/:id",(req,res)=>{
+	console.time()
 	let product=cache.get(req.params.id,()=>{return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id)},900000)
 	res.render("products/index",{product:product})
+	console.log(`GET /${req.params.id}`)
+	console.timeEnd()
+	console.log(new Date())
+	console.log("")
 })
 
 //Temp path
@@ -76,7 +80,7 @@ app.get("/upload",(req,res)=>{
 //API Routes
 
 //GET Routes
-app.get("/api/products/:id/", (req, res) => {
+app.get("/api/products/:category", (req, res) => {
 	console.time()
 	let productMetadata = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.params.id) },900000)
 	res.send(productMetadata)
@@ -84,11 +88,6 @@ app.get("/api/products/:id/", (req, res) => {
 	console.timeEnd()
 	console.log(new Date())
 	console.log("")
-})
-
-app.get("/api/products",(req,res)=>{
-	let products=db.prepare("SELECT * FROM products").all();
-	res.json(products)
 })
 
 

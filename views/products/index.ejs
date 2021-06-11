@@ -29,12 +29,28 @@
 	 </ul>
 	</nav>
  </div>
- <img src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%=product.image%>" alt="" class="product-image"/>
- <h2><%=product.name%></h2>
- <span class="price-main">
-  <span><%= product.cost.split(".")[0]%></span><sup class="price-sup"><%=product.cost.split(".")[1]%></sup>
- </span>
- <p class="renter"><%=product.user%></p>
+ <div id="flex-product">
+  <div class="column">
+   <img src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%=product.image%>" alt="" class="product-image"/>
+	 <h2 class="mobile"><%=product.name%></h2>
+   <p class="price-main">
+    <span><%= product.cost.split(".")[0]%></span><sup class="price-sup"><%=product.cost.split(".")[1]%></sup>
+   </p>
+   <p class="renter"><span>By: </span><b><%=product.user%></b></p>
+  </div>
+	<div class="columns">
+	 <h2 class="desktop"><%= product.name%></h2>
+	 <p class="product-desc">
+	  <%=product.desc%>
+	 </p>
+	 <div class="about">
+	  <div><b>About</b></div>
+	 Some placeholder info, because the database is kinda hard to change because of how I set it up. I should fix it, but I want to get some stuff done, and the database isn't a priority just yet.
+	 </div>
+	 <div class="buy-card">
+	 </div>
+	</div>
+ </div>
 <script src="views/products/script.js" type="text/javascript"></script>
 </body>
 </html>

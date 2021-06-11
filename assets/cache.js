@@ -24,6 +24,9 @@ let cacheFunc = function () {
 	this.flush = function () {
 		this._cache = {}
 	}
+	this.exists=function(key){
+		return this._cache[key]
+	}
 }
 module.exports = {
 	Cache: cacheFunc
