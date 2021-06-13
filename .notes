@@ -1,0 +1,9 @@
+Using SSL (Server side logic), I request a specific document from Cloud Firestore. This is a list of all the dates. 
+
+I use the returnDate property to create a date range, which is a timeframe of all of the product quantities and their availability.
+
+The date range is an object, where each date has a corresponding number, which is the quantity.
+
+I now load up an array of all the invalid dates, from the date range object. These are the dates where the quantLeft property is under 1.
+
+When the dates are selected, I check the quantity of the start date. This is the maximum you can choose.

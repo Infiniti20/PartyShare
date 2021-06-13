@@ -1,10 +1,10 @@
 Server running...
 
 GET /
-default: 20.63ms
-2021-06-11T14:38:13.065Z
+default: 17.854ms
+2021-06-13T21:23:00.052Z
 
-GET /e32da6be-7794-49393-f53-a
-default: 2.412ms
-2021-06-11T14:38:15.803Z
+GET /
+default: 1.595ms
+2021-06-13T21:27:33.891Z
 

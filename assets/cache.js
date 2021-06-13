@@ -1,7 +1,7 @@
 let cacheFunc = function () {
 	this._cache = {}
 	this.all=function(){return this._cache}
-	this.get = function (key, func, expiration) {
+	this.get = function (key:string, func, expiration) {
 		let res = this._cache[key]
 		if (res == undefined) {
 			res = func()

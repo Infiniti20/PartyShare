@@ -36,6 +36,9 @@ const cache = new caching.Cache()
 const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
 app.locals.bucket = admin.storage().bucket()
 
+const db = admin.firestore(); 
+
+
 //Reviews are on Google Firebase
 //Replit servers are 4 hours ahead
 
@@ -54,10 +57,12 @@ app.get("/", (req, res) => {
 	console.log("")
 })
 
-app.get("/products/:id",(req,res)=>{
+app.get("/products/:id",async(req,res)=>{
 	console.time()
+	let dates=await db.collection("documents").doc(req.params.id).get().data()
+  console.log(dates)
 	let product=cache.get(req.params.id,()=>{return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id)},900000)
-	res.render("products/index",{product:product})
+	res.render("products/index",{product:product,dates})
 	console.log(`GET /${req.params.id}`)
 	console.timeEnd()
 	console.log(new Date())
