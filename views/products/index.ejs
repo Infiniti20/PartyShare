@@ -8,11 +8,13 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap" rel="stylesheet" rel="preload">
 	<link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet" rel="preload">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 	<base href="https://partyshare.infiniti20.repl.co/">
 	<link href="views/products/style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
- <script>let product=<%-JSON.stringify(product)%></script>
+ <script>let dates=<%-JSON.stringify(dates)%></script>
  <div class="nav-container">
   <nav class="navbar">
 	 <h1 id="navbar-logo">PartyShare</h1>
@@ -51,6 +53,10 @@
 	</div>
 	<div class="column">
 		<div class="buy-card">
+		  <span>Rent from</span>
+		  <input id="start" class="date"></input>
+			<span class="label">to</span>
+			<input id="end" class="date"></input>
 			<select name="quant" id="quant">
 				<% for(let i=1;i<=product.quantity;i++){%>
 					<option value="<%=i%>"><%=i%></option>

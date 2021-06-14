@@ -36,7 +36,7 @@ const cache = new caching.Cache()
 const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
 app.locals.bucket = admin.storage().bucket()
 
-const db = admin.firestore(); 
+const firedb = admin.firestore();
 
 
 //Reviews are on Google Firebase
@@ -48,21 +48,27 @@ app.get("/", (req, res) => {
 	let account = req.cookies.token || undefined;
 
 	//Explore cache of first 15 available items
-	let explore=cache.get("explore",()=>{return db.prepare("SELECT * FROM products").all()},900000)
+	let explore = cache.get("explore", () => { return db.prepare("SELECT * FROM products").all() }, 900000)
 	//Rendering the homepage
-	res.render("homepage/index",{products:explore})
+	res.render("homepage/index", { products: explore })
 	console.log(`GET /`)
 	console.timeEnd()
 	console.log(new Date())
 	console.log("")
 })
 
-app.get("/products/:id",async(req,res)=>{
+app.get("/products/:id", async (req, res) => {
 	console.time()
-	let dates=await db.collection("documents").doc(req.params.id).get().data()
-  console.log(dates)
-	let product=cache.get(req.params.id,()=>{return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id)},900000)
-	res.render("products/index",{product:product,dates})
+	let cachedFireid=cache.exists("fire"+req.params.id)
+	//On checkout page sent, delete that key from the cache
+  if(cachedFireid==undefined){
+	 let dates = await firedb.collection("documents").doc(req.params.id).get()
+	 cache.set("fire"+req.params.id,dates.data(),900000)
+	 cachedFireid=dates.data()
+	}
+
+	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id) }, 900000)
+	res.render("products/index", { product: product, dates: cachedFireid})
 	console.log(`GET /${req.params.id}`)
 	console.timeEnd()
 	console.log(new Date())
@@ -70,8 +76,8 @@ app.get("/products/:id",async(req,res)=>{
 })
 
 //Temp path
-app.get("/upload",(req,res)=>{
-	 res.send(`<form method="POST" action="/api/products/new" enctype="multipart/form-data">
+app.get("/upload", (req, res) => {
+	res.send(`<form method="POST" action="/api/products/new" enctype="multipart/form-data">
     <div>
         <label>Select your profile picture:</label>
         <input type="file" name="product_image" />
@@ -87,7 +93,7 @@ app.get("/upload",(req,res)=>{
 //GET Routes
 app.get("/api/products/:category", (req, res) => {
 	console.time()
-	let productMetadata = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.params.id) },900000)
+	let productMetadata = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.params.id) }, 900000)
 	res.send(productMetadata)
 	console.log(`GET ${req.params.id}`)
 	console.timeEnd()
@@ -100,11 +106,11 @@ app.get("/api/products/:category", (req, res) => {
 app.post("/api/products/new", body, upload.single('product_image'), async (req, res) => {
 	let ext = utils.getExt(req.file.originalname)
 	let name = utils.computeHash(req.file.originalname + Math.random()) + ext
-	name.replace("/","|")
+	name.replace("/", "|")
 	//Insert into DB next
 	await app.locals.bucket.file(name).createWriteStream().end(req.file.buffer)
 	res.json({ status: "200 OK" })
 })
 
 
-app.listen(3000, () => { console.log("Server running...");console.log("")})
+app.listen(3000, () => { console.log("Server running..."); console.log("") })

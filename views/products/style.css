@@ -3,6 +3,7 @@
 	--light:#122855;
 	--white:#fff;
 	--grey:#dddddd;
+	--darkgrey:#aeaeae;
 	--selected:#234a9973;
 }
 *{
@@ -237,17 +238,55 @@ div.about > div{
 	outline: none;
   border-radius: 10px;
   padding: 5px;
-	margin:15px;
+	margin:10px;
 	background:none;
 	float:left;
+	border:1px solid var(--darkgrey);
 }
 .buy-card button{
 	width:270px;
 	border:none;
 	outline: none;
 	cursor: pointer;
+	margin-top: 10px;
 	color:var(--white);
 	background:var(--light);
 	border-radius:10px;
 	padding:10px;
+}
+.date{
+	margin: 10px 10px;
+	width: 110px;
+	outline: none;
+	padding: 8px;
+	border-radius: 10px;
+	border: 1px solid var(--darkgrey);
+	float: left;
+}
+
+.flatpickr-current-month{
+ line-height:34px;
+}
+.flatpickr-day.selected{
+	background: var(--primary);
+	border-radius: 0;
+	border-color: var(--primary)
+}
+.flatpickr-day.today{
+	border:none;
+}
+.flatpickr-day{
+	border-radius:0;
+}
+#flex-product > div:nth-child(3) > div > span:nth-child(1){
+	width: 100%;
+	float: left;
+	text-align: left;
+	margin-left: 10px;
+	margin-top: 10px;
+}
+.label{
+	float: left;
+	position: relative;
+	top: 15px;
 }
