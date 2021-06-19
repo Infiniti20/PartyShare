@@ -38,7 +38,6 @@ app.locals.bucket = admin.storage().bucket()
 
 const firedb = admin.firestore();
 
-
 //Reviews are on Google Firebase
 //Replit servers are 4 hours ahead
 
@@ -66,7 +65,6 @@ app.get("/products/:id", async (req, res) => {
 	 cache.set("fire"+req.params.id,dates.data(),900000)
 	 cachedFireid=dates.data()
 	}
-
 	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id) }, 900000)
 	res.render("products/index", { product: product, dates: cachedFireid})
 	console.log(`GET /${req.params.id}`)
@@ -111,6 +109,6 @@ app.post("/api/products/new", body, upload.single('product_image'), async (req, 
 	await app.locals.bucket.file(name).createWriteStream().end(req.file.buffer)
 	res.json({ status: "200 OK" })
 })
-
+// app.post("/:id/rent/date")
 
 app.listen(3000, () => { console.log("Server running..."); console.log("") })

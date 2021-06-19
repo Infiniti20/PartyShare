@@ -267,10 +267,10 @@ div.about > div{
 .flatpickr-current-month{
  line-height:34px;
 }
-.flatpickr-day.selected{
-	background: var(--primary);
+.selected{
+	background: var(--primary) !important;
 	border-radius: 0;
-	border-color: var(--primary)
+	border-color: var(--primary) !important;
 }
 .flatpickr-day.today{
 	border:none;
@@ -289,4 +289,7 @@ div.about > div{
 	float: left;
 	position: relative;
 	top: 15px;
+}
+input.date{
+	cursor:pointer;
 }
