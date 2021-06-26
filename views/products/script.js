@@ -62,7 +62,7 @@ document.querySelector(".buy-card button").addEventListener("click", () => {
 			dates[returnDate] = product.quantity
 		}
 		console.log(dates)
-		localStorage.setItem(product.uuid, JSON.stringify({ dates, quantity: quant, startDate, endDate }))
+		localStorage.setItem(product.uuid, JSON.stringify({ keys, quantity: quant, startDate, endDate }))
 	}
 
 });

@@ -12,12 +12,23 @@
  uuid, varchar(25), UUID from utility functions
  image, varchar(55), image url for diplaying
  name, varchar(90), title of products
- desc, varchar(512), description of products
+ desc, varchar(512), description of products,
  info, varchar(512), info about product
  quantity, int, number of products
  category, varchar(50), catgeory for ordering products,
  cost, varchar(8), string for storing product price per day
+ deposit, varchar(8), deposit amount for product
  returned, int, number of days until return. null if not rented
+
+[
+  'userId',   'user',
+  'email',    'uuid',
+  'image',    'name',
+  'desc',     'quantity',
+  'category', 'cost',
+  'returned', 'info',
+  'deposit'
+]
 
 //Table Creation
 db.prepare(`CREATE TABLE users (
