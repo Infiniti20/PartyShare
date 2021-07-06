@@ -23,6 +23,7 @@ const app = express();
 app.use(cookieParser())
 app.set('view engine', 'ejs');
 var body = bodyParser.json()
+var url = express.urlencoded({ extended: true })
 app.use('/views', express.static('views'));
 
 //Firebase Storage Setup
@@ -31,22 +32,24 @@ admin.initializeApp({
 	storageBucket: process.env.BUCKET_URL
 });
 
-db.prepare("DELETE FROM products").run()
+
 
 //Variables
 const cache = new caching.Cache()
+
 const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
 app.locals.bucket = admin.storage().bucket()
 
 const firedb = admin.firestore();
 
+
 //Reviews are on Google Firebase
 //Replit servers are 4 hours ahead
+
 
 //HTML Routes
 app.get("/", (req, res) => {
 	console.time()
-	let acc = "hi" || undefined;
 
 	//Explore cache of first 15 available items
 	let explore = cache.get("explore", () => { return db.prepare("SELECT uuid,name,image,cost FROM products").all() }, 900000)
@@ -77,40 +80,26 @@ app.get("/products/:id", async (req, res) => {
 
 app.get("/add", (req, res) => {
 	console.time()
-	let account = req.cookies.id || undefined;
-	if (!account) { res.status(403) }
+	let user = db.prepare("SELECT user, password, email FROM users WHERE userId = ?").get(req.cookies.id)
 
-	//Explore cache of first 15 available items
-	let acc = cache.get(account, () => { return db.prepare("SELECT * FROM users WHERE userId = ?").get(account) }, 900000)
+	if (user.password != req.cookies.verify) { res.send("403 Unauthorized"); return }
+
 	//Rendering the homepage
-	res.render("add/index", { user: acc })
+	res.render("add/index", { acc: req.cookies.id, name: user.user, email: user.email })
 	console.log(`GET /add`)
 	console.timeEnd()
 	console.log(new Date())
 	console.log("")
 })
-app.get("/checkout/", async (req, res) => {
-	if(!req.cookies["uuid"]){res.redirect("/");return}
-	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.params.id) }, 900000)
- res.send("403")
-})
 
-//Temp path
-app.get("/upload", (req, res) => {
-	res.send(`<form method="POST" action="/api/products/new" enctype="multipart/form-data">
-    <div>
-        <label>Select your profile picture:</label>
-        <input type="file" name="product_image" />
-    </div>
-    <div>
-        <input type="submit" name="btn_upload_profile_pic" value="Upload" />
-    </div>
-</form>`)
+app.get("/checkout", async (req, res) => {
+	if (!req.cookies["uuid"]) { res.redirect("/"); return }
+	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.cookies.uuid) }, 900000)
+	res.send("403")
 })
 
 //API Routes
 
-//GET Routes
 app.get("/api/products/:category", (req, res) => {
 	console.time()
 	let productMetadata = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.params.id) }, 900000)
@@ -121,36 +110,20 @@ app.get("/api/products/:category", (req, res) => {
 	console.log("")
 })
 
-app.get("/create", async (req, res) => {
-	const account = await stripe.accounts.create({
-		type: 'express',
-		country: 'CA',
-		business_type: 'individual',
-		business_profile: {
-			name: "PartyShare Lessor",
-			product_description: "One of PartyShare's Lessors."
-		}
-	});
-	const accountLinks = await stripe.accountLinks.create({
-		account: account.id,
-		refresh_url: 'https://partyshare.infiniti20.repl.co/create',
-		return_url: 'https://partyshare.infiniti20.repl.co/',
-		type: 'account_onboarding',
-	});
-	res.redirect(accountLinks.url);
-})
 
 
-//POST Routes
 app.post("/api/products/new", body, upload.single('product-image'), async (req, res) => {
 	let ext = utils.getExt(req.file.originalname)
 	let name = utils.computeHash(req.file.originalname + Math.random()) + ext
-	name = name.replaceAll("/", "|")
+	name = name.replace(/\//g, "|")
 
 	let uuid = utils.generateUUID()
 	//Insert into DB next
 	await app.locals.bucket.file(name).createWriteStream().end(req.file.buffer)
-	db.prepare(`INSERT INTO products VALUES('1f56dbeb-d43e-4fb0d-d3b-0',?,?,?,?,?,?,?,?,?,null,?,?)`).run(
+
+	//validate before this statement, because we use a cookie, so we need to make sure the statement is safe
+	db.prepare(`INSERT INTO products VALUES(?,?,?,?,?,?,?,?,?,?,null,?,?)`).run(
+		req.body.userId,
 		req.body.seller,
 		req.body.email,
 		uuid,
@@ -167,6 +140,46 @@ app.post("/api/products/new", body, upload.single('product-image'), async (req, 
 	res.json({ status: "200 OK" })
 
 })
+
+app.post("/api/users/new", url, (req, res) => {
+	db.prepare("INSERT INTO users VALUES(?,?,?,?)").run(
+		req.cookies.stripeId,
+		req.body.name,
+		utils.computeHash(req.body.password),
+		req.body.email
+	)
+	res.cookie("id", req.cookies.stripeId)
+	res.cookie("verify", utils.computeHash(req.body.password))
+	res.clearCookie("stripeId")
+	res.redirect("https://partyshare.infiniti20.repl.co")
+})
+
+
+//Stripe Routes
+
+app.get("/create", async (req, res) => {
+	const account = await stripe.accounts.create({
+		type: 'express',
+		country: 'CA',
+		business_profile: {
+			product_description: "One of PartyShare's Lessors."
+		}
+	});
+	const accountLinks = await stripe.accountLinks.create({
+		account: account.id,
+		refresh_url: 'https://partyshare.infiniti20.repl.co/create',
+		return_url: 'https://partyshare.infiniti20.repl.co/collect',
+		type: 'account_onboarding',
+	});
+	res.cookie("stripeId", account.id)
+	res.redirect(accountLinks.url);
+})
+
+app.get("/collect", async (req, res) => {
+	let stripeId = req.cookies["stripeId"]
+	res.render("form/index.ejs")
+})
+
 // app.post("/:id/rent/date")
 
 app.listen(3000, () => { console.log("Server running..."); console.log("") })

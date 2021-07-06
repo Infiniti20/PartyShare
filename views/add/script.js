@@ -56,15 +56,16 @@ document.querySelector("button").addEventListener("click", () => {
 	children[1].value=title==""?mobileTitle:title
 	children[2].value=document.querySelector(".cost").value.substring(1)
 	children[3].value=document.querySelector(".deposit").value.substring(1)
-	children[4].value="Jana Khosa"
+	children[4].value=name
 	children[5].value=document.querySelector(".product-desc").value
 	children[6].value=document.querySelector(".about textarea").value
 	children[7].value=document.querySelector(".quantity").value
 	children[8].value=document.querySelector("select").value
-	children[9].value="janakhosa@gmail.com"
+	children[9].value=email
 
 
 	var formData = new FormData(formElement);
+	formData.append("userId",acc)
 	var request = new XMLHttpRequest();
 	request.open("POST", "api/products/new");
 	request.send(formData);

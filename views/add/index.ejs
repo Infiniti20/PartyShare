@@ -12,6 +12,7 @@
 	<link href="views/add/style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+  <script>let [acc,name,email]=[<%-JSON.stringify(acc)%>,<%-JSON.stringify(name)%>,<%-JSON.stringify(email)%>]</script>
  <div class="nav-container">
   <nav class="navbar">
 	 <h1 id="navbar-logo">PartyShare</h1>
@@ -38,7 +39,7 @@
 	 <label for="dep">Deposit</label>
 	 <input class="deposit" value="$0.00" id="dep"></input>	 
 	 </div>	 
-   <p class="renter"><span>By: </span><b></b></p>
+   <p class="renter"><span>By: </span><b><%=name%></b></p>
   </div>
 	<div>
 	 <input class="desktop title" placeholder="New Item"></input>
@@ -61,6 +62,7 @@
 			  <option value="Decor">Decor</option>
 				<option value="Centerpieces">Centerpieces</option>
 				<option value="Dining">Dining</option>
+				<option value="Other">Other</option>
 			 </select>
 			</div>
 			<button>Add</button>
