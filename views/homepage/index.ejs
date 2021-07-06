@@ -37,7 +37,7 @@
 	  <p class="product-title"><%= products[i].name%></p>
 		<div class="info">
 		<% if(products[i].returned==null){%>
-		<span class="price-main"><span><%= products[i].cost.split(".")[0]%></span>
+		<span class="price-main"><span>$<%= products[i].cost.split(".")[0]%></span>
 		<sup class="price-sup"><%= products[i].cost.split(".")[1]%></sup>
 		</span>
 		<%};%></div>

@@ -10,7 +10,7 @@ var cookieParser = require('cookie-parser')
 //Libraries
 const multer = require('multer')
 var admin = require("firebase-admin");
-const stripe = require("stripe")(process.env.stripeSK);
+const stripe = require("stripe")("sk_test_51IvAvAIgctnHvCgkBvGdXKs5Hloi8nztdxs3VWabhEKvV61Oq03hbYhiIqJUEMmzCVpF7MBROC7yfWoXayNnA9Ci00yms98FUj");
 
 
 //Files
@@ -32,7 +32,6 @@ admin.initializeApp({
 });
 
 db.prepare("DELETE FROM products").run()
-console.log(db.pragma("table_info(products)").map(e=>e.name))
 
 //Variables
 const cache = new caching.Cache()
@@ -90,6 +89,11 @@ app.get("/add", (req, res) => {
 	console.log(new Date())
 	console.log("")
 })
+app.get("/checkout/", async (req, res) => {
+	if(!req.cookies["uuid"]){res.redirect("/");return}
+	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.params.id) }, 900000)
+ res.send("403")
+})
 
 //Temp path
 app.get("/upload", (req, res) => {
@@ -117,31 +121,50 @@ app.get("/api/products/:category", (req, res) => {
 	console.log("")
 })
 
+app.get("/create", async (req, res) => {
+	const account = await stripe.accounts.create({
+		type: 'express',
+		country: 'CA',
+		business_type: 'individual',
+		business_profile: {
+			name: "PartyShare Lessor",
+			product_description: "One of PartyShare's Lessors."
+		}
+	});
+	const accountLinks = await stripe.accountLinks.create({
+		account: account.id,
+		refresh_url: 'https://partyshare.infiniti20.repl.co/create',
+		return_url: 'https://partyshare.infiniti20.repl.co/',
+		type: 'account_onboarding',
+	});
+	res.redirect(accountLinks.url);
+})
+
 
 //POST Routes
 app.post("/api/products/new", body, upload.single('product-image'), async (req, res) => {
 	let ext = utils.getExt(req.file.originalname)
 	let name = utils.computeHash(req.file.originalname + Math.random()) + ext
-	name = name.replace("/", "|")
+	name = name.replaceAll("/", "|")
 
-	let uuid=utils.generateUUID()
+	let uuid = utils.generateUUID()
 	//Insert into DB next
 	await app.locals.bucket.file(name).createWriteStream().end(req.file.buffer)
 	db.prepare(`INSERT INTO products VALUES('1f56dbeb-d43e-4fb0d-d3b-0',?,?,?,?,?,?,?,?,?,null,?,?)`).run(
-		 req.body.seller,
-		 req.body.email,
-		 uuid,
-		 name,
-		 req.body.title,
-		 req.body.desc,
-		 req.body.quantity,
-		 req.body.category,
-		 req.body.cost,
-		 req.body.info,
-		 req.body.deposit
-	 )
+		req.body.seller,
+		req.body.email,
+		uuid,
+		name,
+		req.body.title,
+		req.body.desc,
+		parseInt(req.body.quantity),
+		req.body.category,
+		parseInt(req.body.cost).toFixed(2),
+		req.body.info,
+		parseInt(req.body.deposit).toFixed(2)
+	)
 	cache.del("explore")
-	res.redirect(307, `/products/${uuid}`);
+	res.json({ status: "200 OK" })
 
 })
 // app.post("/:id/rent/date")

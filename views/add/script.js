@@ -68,5 +68,9 @@ document.querySelector("button").addEventListener("click", () => {
 	var request = new XMLHttpRequest();
 	request.open("POST", "api/products/new");
 	request.send(formData);
-	
+	request.onreadystatechange=()=>{
+		if(request.readyState==4){
+			location="https://partyshare.infiniti20.repl.co/"
+		}
+	}
 })

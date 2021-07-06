@@ -1,47 +1,6 @@
-[
-  'userId',   'user',
-  'email',    'uuid',
-  'image',    'name',
-  'desc',     'quantity',
-  'category', 'cost',
-  'returned', 'info',
-  'deposit'
-]
 Server running...
 
 GET /
-default: 14.224ms
-2021-06-26T01:01:08.569Z
-
-GET /
-default: 1.647ms
-2021-06-26T01:01:16.020Z
-
-GET /add
-default: 2.672ms
-2021-06-26T01:01:22.722Z
-
-GET /
-default: 2.512ms
-2021-06-26T01:03:34.704Z
-
-GET /85caea03-8498-4ccad-f94-d
-default: 975.252ms
-2021-06-26T01:03:37.724Z
-
-GET /
-default: 1.872ms
-2021-06-26T01:07:46.831Z
-
-GET /85caea03-8498-4ccad-f94-d
-default: 69.839ms
-2021-06-26T01:07:47.974Z
-
-GET /85caea03-8498-4ccad-f94-d
-default: 56.217ms
-2021-06-26T01:10:42.275Z
-
-GET /
-default: 1.69ms
-2021-06-26T01:10:50.051Z
+default: 31.263ms
+2021-07-06T13:54:13.661Z
 
