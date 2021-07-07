@@ -47,6 +47,7 @@ document.querySelector(".deposit").addEventListener("keydown", function (ev) {
 })
 
 document.querySelector("button").addEventListener("click", () => {
+	document.querySelector(".overlay").style.display="flex"
 	var formElement = document.querySelector("form");
 	let children=formElement.children
 

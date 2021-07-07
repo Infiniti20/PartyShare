@@ -11,12 +11,12 @@ var cookieParser = require('cookie-parser')
 const multer = require('multer')
 var admin = require("firebase-admin");
 const stripe = require("stripe")("sk_test_51IvAvAIgctnHvCgkBvGdXKs5Hloi8nztdxs3VWabhEKvV61Oq03hbYhiIqJUEMmzCVpF7MBROC7yfWoXayNnA9Ci00yms98FUj");
+const sharp = require("sharp")
 
 
 //Files
 const utils = require("./assets/utils")
 const caching = require("./assets/cache")
-
 
 //Express Setup
 const app = express();
@@ -50,7 +50,7 @@ const firedb = admin.firestore();
 //HTML Routes
 app.get("/", (req, res) => {
 	console.time()
-  let acc=req.cookies.id!=undefined
+	let acc = req.cookies.id != undefined
 	//Explore cache of first 15 available items
 	let explore = cache.get("explore", () => { return db.prepare("SELECT uuid,name,image,cost FROM products").all() }, 900000)
 	//Rendering the homepage
@@ -63,7 +63,7 @@ app.get("/", (req, res) => {
 
 app.get("/products/:id", async (req, res) => {
 	console.time()
-	let acc=req.cookies.id!=undefined
+	let acc = req.cookies.id
 	let cachedFireid = cache.exists("fire" + req.params.id)
 	//On checkout page sent, delete that key from the cache
 	if (cachedFireid == undefined) {
@@ -72,7 +72,7 @@ app.get("/products/:id", async (req, res) => {
 		cachedFireid = dates.data()
 	}
 	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id) }, 900000)
-	res.render("products/index", { product: product, dates: cachedFireid, acc })
+	res.render("products/index", { product: product, dates: cachedFireid, acc:acc })
 	console.log(`GET /${req.params.id}`)
 	console.timeEnd()
 	console.log(new Date())
@@ -81,6 +81,7 @@ app.get("/products/:id", async (req, res) => {
 
 app.get("/add", (req, res) => {
 	console.time()
+	if (!req.cookies.verify) { res.redirect("/"); return }
 	let user = db.prepare("SELECT user, password, email FROM users WHERE userId = ?").get(req.cookies.id)
 
 	if (user.password != req.cookies.verify) { res.send("403 Unauthorized"); return }
@@ -119,8 +120,12 @@ app.post("/api/products/new", body, upload.single('product-image'), async (req, 
 	name = name.replace(/\//g, "|")
 
 	let uuid = utils.generateUUID()
+	let sharpFile = await sharp(req.file.buffer).resize({ width: 350, height: 350 }).jpeg({
+		quality: 70
+	}).toBuffer()
+
 	//Insert into DB next
-	await app.locals.bucket.file(name).createWriteStream().end(req.file.buffer)
+	await app.locals.bucket.file(name).createWriteStream().end(sharpFile)
 
 	//validate before this statement, because we use a cookie, so we need to make sure the statement is safe
 	db.prepare(`INSERT INTO products VALUES(?,?,?,?,?,?,?,?,?,?,null,?,?)`).run(
@@ -138,6 +143,10 @@ app.post("/api/products/new", body, upload.single('product-image'), async (req, 
 		parseInt(req.body.deposit).toFixed(2)
 	)
 	cache.del("explore")
+	await firedb.collection("documents").doc(uuid).set({
+		"1263310860": 1
+	})
+	cache.set("fire" + uuid, { "1263310860": 1 }, 900000)
 	res.json({ status: "200 OK" })
 
 })

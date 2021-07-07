@@ -59,17 +59,22 @@
          </div>
          <div class="column">
             <div class="buy-card">
-               <span>Rent from</span>
-               <input id="start" class="date"></input>
-               <span class="label">to</span>
-               <input id="end" class="date"></input>
-							 <label for="quant">Quantity: </label>
-               <select name="quant" id="quant">
-                  <% for(let i=1;i<=product.quantity;i++){%>
-                  <option value="<%=i%>"><%=i%></option>
-                  <% }%>
-               </select>
-               <button>Checkout</button>
+							 <%if(acc!=product.userId){%>
+								<span>Rent from</span>
+								<input id="start" class="date"></input>
+								<span class="label">to</span>
+								<input id="end" class="date"></input>
+								<label for="quant">Quantity: </label>
+								<select name="quant" id="quant">
+								<% for(let i=1;i<=product.quantity;i++){%>
+									<option value="<%=i%>"><%=i%></option>
+								<% }%>
+								</select>
+								<button>Checkout</button>
+							 <% } else{%>
+							 <button class="edit">Edit</button>
+							 <button class="delete">Delete</button>
+							 <% }%>
             </div>
             <br>
 						<div class="contact-wrapper">

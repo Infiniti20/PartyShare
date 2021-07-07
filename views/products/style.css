@@ -235,9 +235,10 @@ div.about > div{
 .buy-card{
 	width: 300px;
 	border-radius: 10px;
-	height: 200px;
+	height: min-content;
 	text-align:center;
 	display: inline-block;
+	padding-bottom:10px;
 	border: 1px var(--grey) solid;
 }
 .contact{
@@ -341,4 +342,7 @@ label{
 	margin-top: 15px;
 	margin-right: 4px;
 	float: left;
+}
+.delete{
+	background-color: #f64747 !important;
 }
