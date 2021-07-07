@@ -36,7 +36,7 @@
 }
 .nav-menu{
 	display: grid;
-	grid-template-columns: repeat(4,auto);
+	grid-template-columns: repeat(6,auto);
 	list-style-type: none;
 	text-align: center;
 	width: min-content;

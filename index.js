@@ -50,11 +50,11 @@ const firedb = admin.firestore();
 //HTML Routes
 app.get("/", (req, res) => {
 	console.time()
-
+  let acc=req.cookies.id!=undefined
 	//Explore cache of first 15 available items
 	let explore = cache.get("explore", () => { return db.prepare("SELECT uuid,name,image,cost FROM products").all() }, 900000)
 	//Rendering the homepage
-	res.render("homepage/index", { products: explore })
+	res.render("homepage/index", { products: explore, acc })
 	console.log(`GET /`)
 	console.timeEnd()
 	console.log(new Date())
@@ -63,6 +63,7 @@ app.get("/", (req, res) => {
 
 app.get("/products/:id", async (req, res) => {
 	console.time()
+	let acc=req.cookies.id!=undefined
 	let cachedFireid = cache.exists("fire" + req.params.id)
 	//On checkout page sent, delete that key from the cache
 	if (cachedFireid == undefined) {
@@ -71,7 +72,7 @@ app.get("/products/:id", async (req, res) => {
 		cachedFireid = dates.data()
 	}
 	let product = cache.get(req.params.id, () => { return db.prepare("SELECT * FROM products WHERE uuid = ?").get(req.params.id) }, 900000)
-	res.render("products/index", { product: product, dates: cachedFireid, acc: "hi" })
+	res.render("products/index", { product: product, dates: cachedFireid, acc })
 	console.log(`GET /${req.params.id}`)
 	console.timeEnd()
 	console.log(new Date())

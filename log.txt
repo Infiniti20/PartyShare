@@ -1,106 +1,86 @@
 Server running...
 
 GET /
-default: 19.356ms
-2021-07-06T22:11:05.095Z
+default: 22.969ms
+2021-07-07T00:57:00.506Z
 
 GET /
-default: 3.902ms
-2021-07-06T22:38:10.719Z
+default: 2.133ms
+2021-07-07T00:57:25.036Z
 
 GET /
-default: 1.601ms
-2021-07-06T22:38:35.304Z
+default: 6.023ms
+2021-07-07T00:57:26.836Z
+
+GET /add
+default: 2.683ms
+2021-07-07T00:57:29.861Z
 
 GET /
-default: 3.007ms
-2021-07-06T22:40:06.881Z
-
-GET /add
-default: 2.327ms
-2021-07-06T22:40:42.343Z
-
-GET /add
-default: 2.795ms
-2021-07-06T22:42:44.385Z
-
-GET /add
-default: 3.851ms
-2021-07-06T22:45:27.739Z
-
-GET /add
-default: 2.301ms
-2021-07-06T22:46:43.952Z
+default: 6.072ms
+2021-07-07T00:59:26.631Z
 
 GET /
-default: 3.136ms
-2021-07-06T22:47:17.105Z
+default: 2.275ms
+2021-07-07T00:59:32.402Z
+
+GET /d033cc5b-e502-446dd-6d5-1
+default: 1.556s
+2021-07-07T00:59:36.201Z
+
+GET /d033cc5b-e502-446dd-6d5-1
+default: 53.989ms
+2021-07-07T00:59:58.573Z
+
+GET /
+default: 2.197ms
+2021-07-07T01:00:00.765Z
+
+GET /add
+default: 2.303ms
+2021-07-07T01:00:03.201Z
+
+GET /add
+default: 2.212ms
+2021-07-07T01:07:48.746Z
+
+GET /
+default: 2.418ms
+2021-07-07T01:08:10.117Z
+
+GET /
+default: 7.805s
+2021-07-07T01:08:20.055Z
+
+GET /
+default: 1.909ms
+2021-07-07T01:08:20.960Z
+
+GET /
+default: 2.07ms
+2021-07-07T01:11:31.676Z
+
+GET /add
+default: 2.057ms
+2021-07-07T01:11:39.207Z
+
+GET /
+default: 2.336ms
+2021-07-07T01:13:25.095Z
+
+GET /
+default: 4.695ms
+2021-07-07T01:13:32.862Z
+
+GET /2b4919b2-f064-4fc00-b18-7
+default: 137.544ms
+2021-07-07T01:13:41.793Z
+
+GET /
+default: 3.496ms
+2021-07-07T01:14:27.823Z
 
 GET /bcd3a3df-f413-43ce9-98b-4
-default: 1.008s
-2021-07-06T22:47:19.709Z
-
-GET /bcd3a3df-f413-43ce9-98b-4
-default: 43.11ms
-2021-07-06T22:47:23.673Z
-
-GET /bcd3a3df-f413-43ce9-98b-4
-default: 2.843s
-2021-07-06T22:47:50.409Z
-
-GET /add
-default: 2.5ms
-2021-07-06T22:47:51.935Z
-
-GET /add
-default: 2.801ms
-2021-07-06T22:48:21.738Z
-
-GET /add
-default: 2.454ms
-2021-07-06T22:48:22.802Z
-
-GET /add
-default: 5.004ms
-2021-07-06T22:50:24.549Z
-
-GET /add
-default: 2.074ms
-2021-07-06T22:50:26.901Z
-
-GET /add
-default: 2.19ms
-2021-07-06T22:51:53.101Z
-
-GET /
-default: 1.83ms
-2021-07-06T22:52:10.508Z
-
-GET /98abf3d5-ec48-4f816-973-e
-default: 132.583ms
-2021-07-06T22:52:15.220Z
-
-GET /98abf3d5-ec48-4f816-973-e
-default: 7.649ms
-2021-07-06T22:52:37.851Z
-
-GET /
-default: 1.876ms
-2021-07-06T22:52:44.047Z
-
-GET /98abf3d5-ec48-4f816-973-e
-default: 1.955ms
-2021-07-06T22:52:56.475Z
-
-GET /bcd3a3df-f413-43ce9-98b-4
-default: 2.742s
-2021-07-06T22:53:16.387Z
-
-GET /
-default: 2.827ms
-2021-07-06T23:01:03.473Z
-
-GET /bcd3a3df-f413-43ce9-98b-4
-default: 108.406ms
-2021-07-06T23:01:05.756Z
+default: 58.951ms
+2021-07-07T01:15:17.624Z
 
