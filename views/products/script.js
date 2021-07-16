@@ -17,6 +17,7 @@ function createDropDown(int) {
 function createDateRange(start, end) {
 	let dateRange = [];
 	let day = start;
+	if(end==start){return [start]}
 	end -= 86400000
 	while (day != end) {
 		day += 86400000
@@ -87,6 +88,7 @@ document.querySelectorAll(".date").forEach(ele => {
 
 	})
 })
+
 
 // document.body.addEventListener('change', function (evt) {
 // 		 	let quant=document.querySelector("#quant")

@@ -11,3 +11,6 @@ Add product page will be the same as edit page, but will use EJS to change the l
 
 
 Will all account holders be trustworthy?
+
+
+Send renters email after checkout saying "Thank you for renting with us! Your vendor (so@so.cm) is located at 3022 Pettigrew Crescent! You can contact them via email, and coordinate dropoffs/pickups"

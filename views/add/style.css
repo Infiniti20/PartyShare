@@ -205,6 +205,9 @@ h2{
 	text-align:left;
 	font-size:40px;
 }
+.mobile{
+	font-size:28px !important;
+}
 .cost{
 	margin-left: 20px;
 	font-size: 50px;

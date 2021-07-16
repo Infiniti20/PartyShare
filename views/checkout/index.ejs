@@ -1,33 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PartyShare</title>
-	<link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet">
-	<base href="https://partyshare.infiniti20.repl.co/" target="_blank">
-	<link href="views/style.css" rel="stylesheet" type="text/css">
-</head>
-<body>
- <div class="nav-container">
-  <nav class="navbar">
-	 <h1 id="navbar-logo">PartyShare</h1>
-	 <div class="menu-toggle" id="mobile-menu">
-		 <span class="bar"></span>
-		 <span class="bar"></span>
-		 <span class="bar"></span>
-	 </div>
-	 <ul class="nav-menu">
-		 <li><a href="#" class="nav-links">Home</a></li>
-		 <li><a href="#" class="nav-links">About Us</a></li>
-		 <li><a href="#" class="nav-links">Contact</a></li>
-		 <li><a href="#" class="nav-links">FAQ</a></li>
-		 <!--<li><a href="#" class="nav-links nav-links-btn">Sign Up</a></li>-->
-	 </ul>
-	</nav>
- </div>
- <script src="views/script.js" type="text/javascript"></script>
-</body>
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0">
+      <title>PartyShare</title>
+      <link rel="preconnect" href="https://fonts.gstatic.com">
+      <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap" rel="stylesheet">
+      <link href="../views/checkout/style.css" rel="stylesheet" type="text/css">
+      <script src="https://js.stripe.com/v3/"></script>
+   </head>
+   <body>
+	  <script>let [product,cookies] = [<%-JSON.stringify(product)%>,<%-JSON.stringify(cookies)%>]</script>
+      <div class="nav-container">
+         <nav class="navbar">
+            <a href="/"><img id="navbar-logo" src="../views/partyshare.png" width="189.33" height="66" style="object-fit:contain;margin-top:8px;"></img></a>	 
+            <div class="menu-toggle" id="mobile-menu">
+               <span class="bar"></span>
+               <span class="bar"></span>
+               <span class="bar"></span>
+            </div>
+            <ul class="nav-menu">
+               <li><a href="../about-us" class="nav-links">About Us</a></li>
+               <li><a href="../contact" class="nav-links">Contact</a></li>
+               <li><a href="../faq" class="nav-links">FAQ</a></li>
+               <%if(acc){%>
+               <li><a href="../new/products" class="nav-links">+</a></li>
+               <% } else{%>
+               <li><a href="../vendor-login" class="nav-links">Vendor Login</a></li>
+               <% }%>	 
+            </ul>
+         </nav>
+      </div>
+      <div id="checkout">
+			 <div class="item-container">
+         <div class="items"> 
+            <span class="header">Item</span>
+            <span class="header">Price Per Item</span>
+            <span class="header">Dep.</span>
+						<span class="header">Qty.</span>
+						<span class="header">Days</span>
+						<span class="header">Amount Due</span>
+						<div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div>
+            <img src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%=product.image%>">
+            <span><%=product.cost%></span>
+            <span><%=product.deposit%></span>
+            <span><%=cookies.quant%></span>
+            <span><%=Math.max((cookies.eDate - cookies.sDate) / 86400000,1)%></span>
+            <span><%=total.toFixed(2)%></span>
+         </div>
+				</div>
+				<p class="info">Deposit is calculated using the number of days and the amount of items ordered.</p>
+         <label for="name">Name</label>
+         <input id="name" placeholder="John Doe">
+         <label for="email">Email</label>
+         <input id="email" placeholder="me@example.com">
+         <form id="payment-form" data-secret=<%-secret%>>
+            <div id="card-element"></div>
+            <button id="submit" disabled>
+               <div class="spinner hidden" id="spinner"></div>
+               <span id="button-text">Checkout</span>
+            </button>
+            <p id="card-error" role="alert"></p>
+            <p class="result-message hidden">
+               Payment succeeded, see the result in your
+               <a href="" target="_blank">Stripe dashboard.</a> Refresh the page to pay again.
+            </p>
+         </form>
+      </div>
+      <script src="../views/checkout/script.js" type="text/javascript"></script>
+   </body>
 </html>

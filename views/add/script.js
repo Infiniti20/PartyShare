@@ -68,7 +68,7 @@ document.querySelector("button").addEventListener("click", () => {
 	var formData = new FormData(formElement);
 	formData.append("userId",acc)
 	var request = new XMLHttpRequest();
-	request.open("POST", "api/products/new");
+	request.open("POST", "../api/products/new");
 	request.send(formData);
 	request.onreadystatechange=()=>{
 		if(request.readyState==4){

@@ -7,25 +7,24 @@
   <title>PartyShare</title>
 	<link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap" rel="stylesheet preload">
-	<link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet preload">
-	<base href="https://partyshare.infiniti20.repl.co/">
 	<link href="views/homepage/style.css" rel="stylesheet" type="text/css">
 </head>
 <body id="home">
  <div class="nav-container">
   <nav class="navbar">
-	 <h1 id="navbar-logo">PartyShare</h1>
-	 <div class="menu-toggle" id="mobile-menu">
+	<a href="/"><img id="navbar-logo" src="views/partyshare.png" width="189.33" height="66" style="object-fit:contain;margin-top:8px;"></img></a>	 
+	<div class="menu-toggle" id="mobile-menu">
 		 <span class="bar"></span>
 		 <span class="bar"></span>
 		 <span class="bar"></span>
 	 </div>
 	 <ul class="nav-menu">
-		 <li><a href="#" class="nav-links">Home</a></li>
-		 <li><a href="#" class="nav-links">About Us</a></li>
-		 <li><a href="#" class="nav-links">Contact</a></li>
-		 <li><a href="#" class="nav-links">FAQ</a></li>
-		 <%if(acc){%><li><a href="/add" class="nav-links">+</a></li><% }%>
+		 <li><a href="/about-us" class="nav-links">About Us</a></li>
+		 <li><a href="/contact" class="nav-links">Contact</a></li>
+		 <li><a href="/faq" class="nav-links">FAQ</a></li>
+		 <%if(acc){%><li><a href="/new/products" class="nav-links">+</a></li><% } else{%>
+		 <li><a href="/vendor-login" class="nav-links">Vendor Login</a></li>
+		 <% }%>
 		 <!--<li><a href="#" class="nav-links nav-links-btn">Sign Up</a></li>-->
 	 </ul>
 	</nav>

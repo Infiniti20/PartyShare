@@ -23,5 +23,9 @@ module.exports = {
 	getExt: function (filename) {
 		var i = filename.lastIndexOf('.');
 		return (i < 0) ? '' : filename.substr(i);
-	}
+	},
+	getClosest: function (goal, counts) {
+		Math.min(...counts.filter(num => num >= goal));
+	},
+
 }
