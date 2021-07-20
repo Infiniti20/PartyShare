@@ -47,7 +47,7 @@ document.querySelector(".buy-card button").addEventListener("click", () => {
 	let quants = inRange.map(e => dates[e.toString()])
 	keys = createDateRange(startDate, endDate)
 	console.log(keys)
-	if (quants.some(e => e - quant > 0) || quants.length < 1) {
+	if (quants.some(e => e - quant > -1) || quants.length < 1) {
 		for (let i = 0; i < keys.length; i++) {
 			console.log(new Date(keys[i]).toDateString(), dates[keys[i]])
 			if (dates[keys[i]]) {

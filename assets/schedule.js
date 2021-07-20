@@ -7,17 +7,25 @@ function addAction(name, action) {
 
 function scheduleJob(func, args, date) {
 	let delay = calculateDelay(date);
-	lt.setTimeout(()=>{func(...args)}, delay)
+	lt.setTimeout(() => { func(...args) }, delay)
 }
 
 function loadJobs(jobs) {
 	let date = new Date().getTime()
+	ids = Object.keys(jobs)
+	jobs = Object.values(jobs)
 	for (let i = 0; i < jobs.length; i++) {
 		let job = jobs[i]
-		if (date > job.date) { continue }
-    // console.log("Iter: ", `${i} - ${job.date}`, "\nCurrent date: ", new Date().toDateString()+"\n" + new Date().toTimeString(),"\nJob date: ", new Date(job.date).toDateString() +"\n" + new Date(job.date).toTimeString());
+		if (date > job.date) {
+			if (job.passed == false) { actions[job.func](...job.args); actions["edit"](ids[i]) }
+			continue
+		}
 		scheduleJob(actions[job.func], job.args, new Date(job.date))
 	}
+}
+
+function setEditFunction(func) {
+	actions["edit"] = func
 }
 
 function calculateDelay(targetDate) {
@@ -29,4 +37,4 @@ function calculateDelay(targetDate) {
 	return delay
 }
 
-module.exports = { addAction, loadJobs, scheduleJob }
+module.exports = { addAction, loadJobs, scheduleJob, setEditFunction }

@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const fs = require("fs")
 
 module.exports = {
 	computeHash: function (text) {
@@ -27,5 +28,22 @@ module.exports = {
 	getClosest: function (goal, counts) {
 		Math.min(...counts.filter(num => num >= goal));
 	},
+	replaceValues: function (str, values) {
+		var str = str.replace(/\[\w*\]/g, function (match, val) {
+			return values[match.slice(1, -1)] || match;
+		});
+		return str
+	},
+	getFileStream: async function (path) {
+		let reader = fs.createReadStream(path);
+
+		let promise = new Promise(function (resolve, reject) {
+			reader.on('data', (chunk) => resolve(chunk.toString()));
+			reader.on('error', reject); // or something like that. might need to close `hash`
+		});
+
+		let data = await promise;
+		return data
+	}
 
 }

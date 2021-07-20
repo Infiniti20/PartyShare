@@ -14,7 +14,7 @@ function createDateRange(start, end) {
 // let quant = document.querySelector("#quant").value
 // let endDate = new Date(document.querySelector("#end").value).setHours(0, 0, 0, 0);
 
-function updateDates(dates, startDate, endDate, quant) {
+function updateDates(dates, startDate, endDate, quant, totalQuant) {
 	let keys = Object.keys(dates);
 	let inRange = keys.filter(date => {
 		return date >= startDate && date <= endDate
@@ -26,14 +26,14 @@ function updateDates(dates, startDate, endDate, quant) {
 			if (dates[keys[i]]) {
 				dates[keys[i]] -= quant
 			} else {
-				dates[keys[i]] = product.quantity - quant
+				dates[keys[i]] = totalQuant - quant
 			}
 		}
 		let returnDate = endDate + 86400000
 		if (dates[returnDate]) {
 			dates[returnDate] += quant
 		} else {
-			dates[returnDate] = product.quantity
+			dates[returnDate] = totalQuant
 		}
 		return dates
 	}

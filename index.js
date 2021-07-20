@@ -20,8 +20,7 @@ const nodemailer = require("nodemailer")
 const utils = require("./assets/utils")
 const caching = require("./assets/cache")
 const schedule = require("./assets/schedule")
-const dates = require("./assets/dates")
-
+const dateFunctions = require("./assets/dates")
 
 //Express Setup
 const app = express();
@@ -59,8 +58,14 @@ const firedb = admin.firestore();
 //Replit servers are 4 hours ahead
 async function persistSchedule() {
 	let jobs = await firedb.collection("scheduling").get()
-	jobs = jobs.docs.map(doc => doc.data());
-	schedule.loadJobs(jobs)
+	let obj = {}
+
+	jobs.docs.forEach(doc => {
+		obj[doc.id] = doc.data()
+	})
+
+	schedule.loadJobs(obj)
+	console.log(obj)
 }
 
 persistSchedule()
@@ -69,7 +74,8 @@ async function addJob(name, func, args, date) {
 	await firedb.collection("scheduling").add({
 		date: date.getTime(),
 		name,
-		args
+		args,
+		passed: false
 	})
 	schedule.scheduleJob(func, args, date)
 }
@@ -89,8 +95,13 @@ function sendMail(recipient, subject, text) {
 	});
 }
 
+async function editDB(id) {
+	await firedb.collection("scheduling").doc(id).set({ passed: true }, { merge: true })
+}
+
+schedule.setEditFunction(editDB)
 schedule.addAction("createOrder", createOrder)
-schedule.addAction("createOrder", finishOrder)
+schedule.addAction("finishOrder", finishOrder)
 
 //HTML Routes
 app.get("/", (req, res) => {
@@ -166,6 +177,17 @@ app.get("/checkout", async (req, res) => {
 
 //API Routes
 
+async function loadFireDataCached(id) {
+	let cachedFireid = cache.exists("fire" + id)
+	//On checkout page sent, delete that key from the cache
+	if (cachedFireid == undefined) {
+		let fireQuery = await firedb.collection("documents").doc(id).get()
+		cache.set("fire" + id, fireQuery.data(), 900000)
+		cachedFireid = fireQuery.data()
+	}
+	return cachedFireid
+}
+
 app.post("/api/order/new", body, async (req, res) => {
 	console.log(req.body)
 	const paymentMethods = await stripe.paymentMethods.list({
@@ -178,39 +200,53 @@ app.post("/api/order/new", body, async (req, res) => {
 	let start = parseInt(req.body.cookies.sDate)
 	let end = parseInt(req.body.cookies.eDate)
 	let quant = req.body.cookies.quant
+	let id = req.body.cookies.uuid
 
-	// let cachedFireid = cache.exists("fire" + req.params.id)
-	//On checkout page sent, delete that key from the cache
-	// if (cachedFireid == undefined) {
-	// 	let dates = await firedb.collection("documents").doc(req.params.id).get()
-	// 	cache.set("fire" + req.params.id, dates.data(), 900000)
-	// 	cachedFireid = dates.data()
-	// }
-
-	// let dates = ""
 
 	let product = cache.get(req.body.cookies.uuid, () => { return db.prepare("SELECT * from products WHERE uuid = ?").get(req.body.cookies.uuid) }, 900000)
 
 	let account = cache.get(product.userId, () => { return db.prepare("SELECT * FROM users WHERE userId = ?").get(product.userId) }, 900000)
 
-	sendMail(req.body.email, "Order Confirmed", `Thank you for your order! Your vendor, ${account.user} (<b>${account.email}</b>) has been notified.<br>Your pickup is scheduled for ${new Date(start).toDateString()} at ${account.location}.<br><br>You will receive another email the day before the order is scheduled.`)
+	let dates = await loadFireDataCached(id)
+	let updatedDates = dateFunctions.updateDates(dates, start, end, quant, product.quantity)
+	console.log([dates, start, end, quant, product.quant], updatedDates)
+	await firedb.collection("documents").doc(id).set(updatedDates, { merge: true })
 
-	sendMail(account.email, "New Order", `<b>${req.body.name}</b> <i>(${req.body.email})</i> has ordered <b>${product.name}</b> from ${new Date(start).toDateString()} to ${new Date(end).toDateString()}. They have rented <b>${quant}</b> of them.<br></br>You will receive another email the day before the order is scheduled.`)
+	cache.del("fire" + id)
 
-	addJob("createOrder", createOrder, [product.uuid, { email: req.body.email, startDate: start, endDate: end, quant }, { customer: customerId, card }], new Date(start - 86400000))
+
+
+	let confirm = await utils.getFileStream("views/templates/location.html")
+
+	sendMail(req.body.email, "Order Confirmation", utils.replaceValues(confirm, {
+		USER: req.body.name,
+		EMAIL: account.email,
+		DATE: new Date(start).toDateString(),
+		ADDRESS: account.location
+	}))
+
+
+
+	//TODO: ADD ASYNC CACHE FUNC IN UTILS
+	let order = await utils.getFileStream("views/templates/order.html")
+
+
+	sendMail(account.email, "New Order", utils.replaceValues(order, {
+		USER: account.user,
+		EMAIL: req.body.email,
+		ITEM: product.name,
+		QUANT: quant,
+		DATE: new Date(start).toDateString(),
+		DATE2: new Date(end).toDateString()
+	}))
+
+	addJob("createOrder", createOrder, [product.uuid, { email: req.body.email, startDate: start, endDate: end, quant, name: req.body.name, }, { customer: customerId, card }], new Date(start - 86400000))
 
 	res.send("")
-
-	// await firedb.collection("payments").doc(card).set({
-	// 	email: req.body.email,
-	// 	name: req.body.email,
-	// 	title: req.body.title,
-	// 	customer: req.body.customer
-	// })
 })
-
 // orderInfo : {
 // 	email: string,
+//  name: string,
 // 	startDate: int,
 // 	endDate: int, 
 // 	quant: int
@@ -236,9 +272,27 @@ async function createOrder(productId, orderInfo, paymentInfo, ) {
 	let total = deposit + rentCost
 
 	let percentage = (total / 100) * 10
-	sendMail(orderInfo.email, "Order Pickup", `Today's the pickup date for your order of ${product.name}! It's returned on ${new Date(orderInfo.endDate).toDateString()}. Come pick it up at ${account.location}!`)
 
-	sendMail(account.email, "Order Pickup", `<b>${req.body.name}</b> <i>(${req.body.email})</i> will be coming buy to pickup ${product.name}. They have ordered ${orderInfo.quant}, and the product will be returning on ${new Date(orderInfo.endDate).toDateString()}.`)
+	let cusOrder = await utils.getFileStream("views/templates/order.html")
+
+
+	sendMail(orderInfo.email, "Order Pickup", utils.replaceValues(cusOrder, {
+		USER: orderInfo.name,
+		EMAIL: account.email,
+		ADDRESS: account.location
+	}))
+
+	let vendorOrder = await utils.getFileStream("views/templates/order.html")
+
+
+	sendMail(account.email, "Order Pickup", utils.replaceValues(vendorOrder, {
+		USER: account.user,
+		CUSTOMER: orderInfo.name,
+		ITEM: product.name,
+		QUANT: orderInfo.quant,
+		DATE: new Date(orderInfo.startDate).toDateString(),
+		DATE2: new Date(orderInfo.endDate).toDateString()
+	}))
 
 	const paymentIntent = await stripe.paymentIntents.create({
 		amount: total * 100,
@@ -253,8 +307,6 @@ async function createOrder(productId, orderInfo, paymentInfo, ) {
 		}
 	});
 
-	await firedb.collection("documents").doc()
-
 	let emailInfo = {
 		customer: orderInfo.email,
 		vendor: account.email
@@ -262,10 +314,9 @@ async function createOrder(productId, orderInfo, paymentInfo, ) {
 	let payments = {
 		intentId: paymentIntent.id,
 		deposit,
-		name: req.body.name,
+		name: orderInfo.name,
 		product: product.name
 	}
-	account = account.userId
 	addJob("finishOrder", finishOrder, [payments, emailInfo, account], new Date(orderInfo.endDate + 86400000))
 
 }
@@ -274,15 +325,22 @@ async function finishOrder(paymentInfo, emailInfo, account) {
 	await firedb.collection("payments").doc(paymentInfo.intentId).set({
 		amount: paymentInfo.deposit,
 		customerEmail: emailInfo.customer,
-		account
+		account: account.userId
 	})
+	let deposit = await utils.getFileStream("views/templates/deposit.html")
 
 	//Send email using deposit refund
-	sendMail(emailInfo.vendor, "Refund Deposit", `<b>${paymentInfo.name}</b> has recently rented ${paymentInfo.product}. Was the product returned in good condition? If so, click <a href="${"e"}">here</a> to refund their deposit`)
+	sendMail(emailInfo.vendor, "Refund Deposit", utils.replaceValues(deposit, {
+		USER: account.name,
+		ITEM: paymentInfo.product,
+		CUSTOMER: paymentInfo.name,
+		DEP_LINK: "https://partyshare.infiniti20.repl.co/refund/deposit/" + paymentInfo.intentId
+	}))
 }
 
 app.get("/refund/deposit/:id", async (req, res) => {
 	let data = await firedb.collection("payments").doc(req.params.id).get();
+
 	if (req.cookies.id != data.account) { res.send("Sorry, your account is not authorized to refund this deposit. Are you signed in with the right account?"); return }
 
 })
