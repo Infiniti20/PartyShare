@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../app/index.ts"],
+  "sourcesContent": ["import {order, account, customer, product} from './types';\r\nconsole.log(\"HELLO WORLD\")"],
+  "mappings": "AACA,QAAQ,IAAI",
+  "names": []
+}
