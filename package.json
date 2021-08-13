@@ -13,6 +13,8 @@
   "author": "Kieran Roy",
   "license": "ISC",
   "dependencies": {
+    "@types/cookie-parser": "^1.4.2",
+    "@types/sharp": "^0.28.5",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "ejs": "^3.1.6",
