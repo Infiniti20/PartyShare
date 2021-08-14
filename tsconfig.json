@@ -1,12 +1,13 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "esnext",
 		"moduleResolution": "node",
 		"noImplicitAny": true,
 		"removeComments": true,
 		"preserveConstEnums": true,
 		"sourceMap": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"target":"ES2021",
 	},
-	"files":["./app/index.ts"]
+	"files":["./app/index.ts", "./app/db.ts",]
 }

@@ -15,6 +15,7 @@
   "dependencies": {
     "@types/cookie-parser": "^1.4.2",
     "@types/sharp": "^0.28.5",
+    "@types/sqlite3": "^3.1.7",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "ejs": "^3.1.6",
@@ -22,9 +23,9 @@
     "firebase-admin": "^9.11.0",
     "long-timeout": "^0.1.1",
     "multer": "^1.4.3",
-    "node-sqlite": "0.0.2-security",
     "nodemailer": "^6.6.3",
     "sharp": "^0.28.3",
+    "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "stripe": "^8.169.0"
   }

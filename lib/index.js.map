@@ -1,7 +1,7 @@
 {
   "version": 3,
-  "sources": ["../app/index.ts"],
-  "sourcesContent": ["import { order, account, customer, product } from \"./types\";\r\nimport express from \"express\";\r\nimport cookieParser from \"cookie-parser\";\r\n\r\nconst app = express();\r\n\r\n//Express addons for parsing data from the request\r\napp.use(express.json());\r\napp.use(express.urlencoded());\r\napp.use(cookieParser());\r\n\r\n//Express view engine setuo\r\napp.set(\"view-engine\", \"ejs\");\r\napp.use('/views', express.static(\"views\"))\r\n\r\napp.get(\"/\", (req, res)=>{\r\n    res.render('homepage/index.ejs')\r\n})\r\n\r\n\r\n\r\n\r\n\r\napp.listen(80, () => { console.log(\"Server running...\"); console.log(\"\") })\r\n"],
-  "mappings": "ohBACA,MAAoB,sBACpB,EAAyB,4BAEnB,EAAM,gBAGZ,EAAI,IAAI,UAAQ,QAChB,EAAI,IAAI,UAAQ,cAChB,EAAI,IAAI,iBAGR,EAAI,IAAI,cAAe,OACvB,EAAI,IAAI,SAAU,UAAQ,OAAO,UAEjC,EAAI,IAAI,IAAK,CAAC,EAAK,IAAM,CACrB,EAAI,OAAO,wBAOf,EAAI,OAAO,GAAI,IAAM,CAAE,QAAQ,IAAI,qBAAsB,QAAQ,IAAI",
+  "sources": [],
+  "sourcesContent": [],
+  "mappings": "",
   "names": []
 }
