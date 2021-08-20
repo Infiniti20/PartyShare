@@ -3,3 +3,5 @@ package-lock.json
 .log
 .schema
 admin-sdk.json
+.env
+database/

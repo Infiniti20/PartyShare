@@ -6,7 +6,7 @@ class Database {
 
   constructor(path: string) {
     this._db = new sqlite.Database(path);
-    console.log(JSON.stringify(this._db.run("PRAGMA journal_mode = WAL")));
+    this._db.run("PRAGMA journal_mode = WAL");
   }
 
   run(query: string, ...params: any) {

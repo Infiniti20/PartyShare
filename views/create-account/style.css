@@ -1,0 +1,39 @@
+#form-container{
+	text-align:center;
+}
+form{
+	display: inline-flex;
+	flex-direction: column;
+	width:300px;
+	text-align:left;
+}
+input{
+	border-radius:5px;
+	border:1px solid var(--light);
+  height:30px;
+	outline:none;
+	padding-left:10px;
+}
+textarea{
+	border-radius:5px;
+	border:1px solid var(--light);
+	outline:none;
+	padding:10px;
+	resize:none;
+}
+button{
+	width:300px;
+	margin-top:20px;
+	border-radius:5px;
+	color:white;
+	background:var(--primary);
+	outline:none;
+	border:none;
+	height:30px;
+	cursor: pointer;
+}
+label{
+	margin-top:20px;
+	margin-bottom:5px;
+	font-size:12px;
+}

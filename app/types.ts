@@ -10,9 +10,9 @@ interface order {
 interface account {
 	id: string,
 	name: string
-	password: string,
+	email: string,
+	authID: string,
 	location: string,
-	email: string
 }
 
 interface customer {
@@ -24,7 +24,7 @@ interface customer {
 interface product {
 	name: string,
 	id: string,
-	accountId: string,
+	accountID: string,
 	imageURL: string,
 	category: "Decor" | "Centerpieces" | "Dining" | "Other",
 	desc: string,
