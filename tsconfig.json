@@ -9,5 +9,5 @@
 		"esModuleInterop": true,
 		"target":"ES2021",
 	},
-	"files":["./app/index.ts", "./app/db.ts",]
+	"files":["./app/index.ts", "app/database.ts",]
 }
