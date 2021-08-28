@@ -15,20 +15,25 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
 
   let userCredidential = await firebase
     .auth()
-    .createUserWithEmailAndPassword(inputs[0].value, inputs[0].value);
+    .createUserWithEmailAndPassword(inputs[1].value, inputs[2].value);
 
   console.log(userCredidential);
-  console.log(await userCredidential.user.getIdToken());
 
-  // TODO: ADD ACCOUNT DATA TO REQUEST
+  
 
-  await fetch("/accounts/login", {
+  toggleLoading()
+  await fetch("/accounts/create", {
     method: "POST",
     body: JSON.stringify({  
       idToken: await userCredidential.user.getIdToken(),
+      name: inputs[0].value,
+      email: inputs[1].value,
+      location: inputs[3].value
     }),
     headers: {
       "Content-Type": "application/json",
     },
   });
+  toggleLoading()
+  window.location = "/"
 });

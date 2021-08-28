@@ -1,6 +1,10 @@
 #form-container {
   text-align: center;
 }
+#reset-password {
+  text-align: center;
+  display: none;
+}
 form {
   display: inline-flex;
   flex-direction: column;
@@ -8,6 +12,7 @@ form {
   text-align: left;
 }
 input {
+  position: relative;
   border-radius: 5px;
   border: 1px solid var(--light);
   height: 30px;
@@ -15,6 +20,7 @@ input {
   padding-left: 10px;
 }
 textarea {
+  position: relative;
   border-radius: 5px;
   border: 1px solid var(--light);
   outline: none;
@@ -36,4 +42,21 @@ label {
   margin-top: 20px;
   margin-bottom: 5px;
   font-size: 12px;
+}
+p {
+  font-size: 10px;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+  color: var(--primary);
+}
+p:hover {
+  text-decoration: underline;
+}
+
+b {
+  color: var(--error);
+  font-size: 10px;
+  margin-top: 5px;
+  display: none;
 }

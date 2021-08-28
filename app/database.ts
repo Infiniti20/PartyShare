@@ -13,7 +13,7 @@ class Database {
     return new Promise((resolve, reject) => {
       this._db.run(
         query,
-        params.params,
+        ...params,
         function (this: any, err: Error | null) {
           if (err) {
             reject(err);
@@ -27,7 +27,7 @@ class Database {
 
   get(query: string, ...params: any) {
     return new Promise((resolve, reject) => {
-      this._db.get(query, params.params, (err: Error | null, row: any) => {
+      this._db.get(query, ...params, (err: Error | null, row: any) => {
         if (err) {
           reject(err);
         } else {
@@ -39,7 +39,7 @@ class Database {
 
   all(query: string, ...params: any) {
     return new Promise((resolve, reject) => {
-      this._db.all(query, params.params, (err: Error | null, rows: any[]) => {
+      this._db.all(query, ...params, (err: Error | null, rows: any[]) => {
         if (err) {
           reject(err);
         } else {

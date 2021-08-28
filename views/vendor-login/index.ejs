@@ -3,26 +3,30 @@
   <head>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <%-include("../components/head.ejs",{name: 'create-account'}) %>
+    <%-include("../components/head.ejs",{name: 'vendor-login'}) %>
   </head>
   <body>
     <%-include('../components/nav.ejs', {acc: false})%>
-    <%-include('../components/loader.ejs', {})%>
+    <%-include('../components/loader.ejs')%>
     <div id="form-container">
       <form action="/">
-        <label for="name">Name</label>
-        <input id="name" name="name" />
-
         <label for="email">Email</label>
-        <input id="email" name="email" />
+        <input id="email" name="email" type="email"/>
+        <b class="error"></b>
 
         <label for="password">Password</label>
         <input type="password" id="password" name="password" />
+        <b class="error"></b>
 
-        <label for="location">Location</label>
-        <input id="location" name="location" />
-
-        <button type="submit">Create Account</button>
+        <p>Forgot Password?</p>
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+    <div id="reset-password">
+      <form action="/">
+        <label for="email">Email</label>
+        <input name="email" />
+        <button type="submit">Reset Password</button>
       </form>
     </div>
   </body>
