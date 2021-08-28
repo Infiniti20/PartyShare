@@ -37,3 +37,10 @@ label {
   margin-bottom: 5px;
   font-size: 12px;
 }
+
+b {
+  color: var(--error);
+  font-size: 10px;
+  margin-top: 5px;
+  display: none;
+}

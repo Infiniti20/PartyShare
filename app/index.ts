@@ -68,9 +68,15 @@ async function AuthWithCookies(
 }
 
 // ! Routes
+
+// * HTML REQUESTS
 app.get("/", async (req, res) => {
   res.render("homepage/index", { acc: req.cookies.session });
 });
+
+app.get("/faq", async(req,res)=>{
+  
+})
 
 app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
@@ -99,6 +105,7 @@ app.get("/accounts/create/:hash", async (req, res) => {
   res.render("create-account/index");
 });
 
+// * POST REQUESTS
 app.post("/accounts/login", async (req, res) => {
   let idToken = req.body.idToken;
   const authID = (await firebase.auth().verifyIdToken(idToken)).uid;
@@ -125,19 +132,12 @@ app.post("/accounts/create", async (req, res) => {
     "INSERT INTO accounts VALUES (?, ?, ?, ?, ?);",
     ...Object.values(account)
   );
-  
+
   res.clearCookie("stripeID")
   res.end(JSON.stringify({ status: "completed" }));
 });
 
-app.get("/verify", async (req, res) => {
-  const idToken = req.cookies.session;
-
-  const claims = await firebase.auth().verifySessionCookie(idToken, false);
-  console.log(claims);
-  res.send("complete");
-});
-
+// * GET REQUESTS
 app.get("/logout", async (req, res) => {
   res.clearCookie("session");
   res.redirect("/");

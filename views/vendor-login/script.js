@@ -41,11 +41,9 @@ document.querySelector("p").addEventListener("click", ()=>{
 signInForm.addEventListener("submit", async (ev)=>{
   ev.preventDefault()
   const user = await firebase.auth().signInWithEmailAndPassword(signInForm.children[1].value, signInForm.children[4].value).catch((error)=>{
-    console.log("ERROR: ", error)
     let code = firebaseCodes[error.code]
     showError(document.getElementById(code[0]), code[1])
   })
-  console.log(user)
 
   await fetch("/accounts/login", {
     method: "POST",
