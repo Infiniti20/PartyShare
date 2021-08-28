@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%-include("../components/head.ejs",{name: 'faq'})  %> 
+</head>
+<body id="home">
+<%-include('../components/nav.ejs', {acc})%>
+ <div class="container">
+  <% for(let i=0;i<faqs.length;i++){%>
+     <div class="faq-drawer">
+      <input class="faq-drawer__trigger" id="faq-drawer-<%=i%>" type="checkbox" /><label class="faq-drawer__title" for="faq-drawer-<%=i%>"><%=faqs[i].title%></label>
+      <div class="faq-drawer__content-wrapper">
+        <div class="faq-drawer__content">
+          <p>
+            <%= faqs[i].text%>
+          </p>
+        </div>
+      </div>
+    </div>
+	<% };%>
+ </div>
+</body>
+</html>

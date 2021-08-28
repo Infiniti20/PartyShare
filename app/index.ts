@@ -74,9 +74,25 @@ app.get("/", async (req, res) => {
   res.render("homepage/index", { acc: req.cookies.session });
 });
 
-app.get("/faq", async(req,res)=>{
-  
-})
+app.get("/faq", async (req, res) => {
+  res.render("faq/index", {
+    acc: req.cookies.session,
+    faqs: [
+      {
+        title: "How do I start renting on PartyShare?",
+        text: "You can contact me at janakhosa@gmail.com to get in touch, and we can help you set up your account!",
+      },
+      {
+        title: "Will I get my deposit back?",
+        text: "Yes! It does take 5 to 10 business days for it to actually show up in your account, so you may not see it right away.",
+      },
+      {
+        title: "What information does PartyShare store about me?",
+        text: "PartyShare only stores your email address and nothing else! This is just to contact you about your order, and give you updates on it.",
+      },
+    ],
+  });
+});
 
 app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
@@ -133,7 +149,7 @@ app.post("/accounts/create", async (req, res) => {
     ...Object.values(account)
   );
 
-  res.clearCookie("stripeID")
+  res.clearCookie("stripeID");
   res.end(JSON.stringify({ status: "completed" }));
 });
 
