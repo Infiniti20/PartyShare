@@ -66,6 +66,7 @@ b{
 	outline:none;
 	border:none;
 	resize: none;
+	height:80px;
 	width:500px;
 }
 .mobile{

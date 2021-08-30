@@ -5,5 +5,35 @@
 </head>
 <body>
    <%-include('../components/nav.ejs', {acc})%>
+   <h2 class="product-header">Explore</h2>
+   <div class="search-container">
+     <form action="/search" method="POST">
+        <input class="search" placeholder="Search">
+      </form>
+      <div class="tag-container">
+        <% let categories = ["Decor", "Dining", "Centerpieces", "Other"] %> 
+              <% for ( let x=0; x < categories.length; x++ ) {%>
+              <div class="tag-parent">
+                  <input type="radio" id=<%=categories[x]%> name="radio"></input>
+                  <label class="tag" for=<%=categories[x]%>><%=categories[x]%></label>
+              </div>
+          <% };%>
+      </div>
+   </div>
+
+   <div id="product-bar">
+    <% for(let i=0;i<products.length;i++){%>
+    <div class="product product-container" id="<%=products[i].id%>">
+       <img class="product-image" src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%= products[i].imageURL%>" alt=""/>
+       <p class="product-title"><%= products[i].name%></p>
+       <div class="info">
+           <% let price = ((products[i].price / 100).toFixed(2)) %>
+          <span class="price-main"><span>$<%= price.split(".")[0]%></span>
+          <sup class="price-sup"><%= price.split(".")[1]%></sup>
+          </span>
+       </div>
+    </div>
+    <% }; %>
+ </div>
 </body>
 </html>

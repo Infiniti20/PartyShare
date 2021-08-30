@@ -92,16 +92,20 @@ async function VerifyCookie(sessionCookie: string): Promise<string> {
 }
 
 async function GetUser(uid: string): Promise<account> {
-  return cache.getAsync(uid, async () => {
+  return await cache.getAsync(uid, async () => {
     return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
   });
 }
 
 // ! Routes
 
+
 // * HTML REQUESTS
 app.get("/", async (req, res) => {
-  res.render("homepage/index", { acc: req.cookies.session });
+  const products = await cache.getAsync("explore", async()=>{
+    return await db.all("SELECT id, name, imageURL, price FROM products")
+  })
+  res.render("homepage/index", { acc: req.cookies.session, products });
 });
 
 app.get("/faq", async (req, res) => {
