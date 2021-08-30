@@ -45,6 +45,7 @@ signInForm.addEventListener("submit", async (ev)=>{
     showError(document.getElementById(code[0]), code[1])
   })
 
+  toggleLoading()
   await fetch("/accounts/login", {
     method: "POST",
     body: JSON.stringify({  
@@ -54,6 +55,6 @@ signInForm.addEventListener("submit", async (ev)=>{
       "Content-Type": "application/json",
     },
   });
-
+  toggleLoading()
   window.location = "/"
 })

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <%-include("../components/head.ejs",{name: 'add'})  %> 
+   </head>
+   <body>
+      <%-include('../components/nav.ejs', {acc: true})%>    
+      <%-include('../components/loader.ejs')%>
+      <form>
+        <input type="file" accept="image/*" name="image">
+        <div id="flex-product">
+            <div class="column">
+                <div class="product-image">Upload Image</div>
+                <input class="mobile title" placeholder="New Item" name="mobile-title"></input>
+                <input class="cost" value="$0.00" name="cost"></input>
+                <div style="text-align:left;margin-top:10px;margin-bottom:10px;">
+                <label for="deposit">Deposit</label>
+                <input class="deposit" value="$0.00" name="deposit"></input>	 
+                </div>
+                <p class="lessor"><span>By: </span><b><%=name%></b></p>
+            </div>
+            <div>
+                <input class="desktop title" placeholder="New Item" name="desktop-title"></input>
+                <textarea class="product-desc" placeholder="A little bit about the item, such as where it could be placed, or some special details." name="description"></textarea>
+                <div class="about">
+                <div><b>About</b></div>
+                <textarea placeholder="About the dimensions, and colors of the product. " name="about"></textarea>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="buy-card">
+                <div>
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" name="quantity" id="quantity" min="0"></input>
+                </div>
+                <div>
+                    <label for="select">Category:</label>
+                    <select name="category">
+                        <option value="Decor">Decor</option>
+                        <option value="Centerpieces">Centerpieces</option>
+                        <option value="Dining">Dining</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <button type="submit">Add</button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+   </body>
+</html>

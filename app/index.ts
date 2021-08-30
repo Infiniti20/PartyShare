@@ -19,6 +19,9 @@ async function createDB() {
 
 createDB();
 
+import { CacheLayer } from "./cache";
+const cache = new CacheLayer();
+
 //Express imports
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -67,6 +70,23 @@ async function AuthWithCookies(
   res.cookie("session", sessionCookie, options);
 }
 
+async function VerifyCookie(sessionCookie: string): Promise<string> {
+  const data = await firebase
+    .auth()
+    .verifySessionCookie(sessionCookie || "")
+    .catch(() => {
+      return null;
+    });
+
+  return data.uid || null;
+}
+
+async function GetUser(uid: string): Promise<account> {
+  return cache.getAsync(uid, async () => {
+    return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
+  });
+}
+
 // ! Routes
 
 // * HTML REQUESTS
@@ -96,6 +116,18 @@ app.get("/faq", async (req, res) => {
 
 app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
+});
+
+app.get("/products/create", async (req, res) => {
+  const uid = await VerifyCookie(req.cookies.session);
+
+  if (uid == null) {
+    res.redirect("/");
+  }
+
+  const user = await GetUser(uid);
+
+  res.render("add/index", { name: user.name });
 });
 
 app.get("/accounts/create", async (req, res) => {
