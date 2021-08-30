@@ -34,7 +34,7 @@ class CacheLayer {
     return val;
   }
 
-  set(key: string, val: any, expiration: number) {
+  set(key: string, val: any, expiration: number = defaultCacheExpiration) {
     this._cache[key] = val;
     setTimeout(() => {
       this.del(key);

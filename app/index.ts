@@ -45,8 +45,7 @@ firebase.initializeApp({
 });
 
 const firedb = firebase.firestore();
-app.locals.bucket = admin.storage().bucket()
-
+app.locals.bucket = firebase.storage().bucket();
 
 //Stripe setup
 import Stripe from "stripe";
@@ -56,13 +55,14 @@ const stripe = new Stripe(process.env.StripeSK, {
 });
 
 //Sharp setup
-import sharp from 'sharp';
+import sharp from "sharp";
 
 //Multer setup
-import multer from 'multer';
-const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
-
-
+import multer from "multer";
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: utils.filter,
+});
 
 // ! Functions
 async function AuthWithCookies(
@@ -96,8 +96,6 @@ async function GetUser(uid: string): Promise<account> {
     return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
   });
 }
-
-
 
 // ! Routes
 
@@ -133,11 +131,13 @@ app.get("/vendor-login", async (req, res) => {
 app.get("/products/create", async (req, res) => {
   const uid = await VerifyCookie(req.cookies.session);
 
-  if(uid == null){ res.redirect("/") }
+  if (uid == null) {
+    res.redirect("/");
+  }
 
-  const user = await GetUser(uid)
+  const user = await GetUser(uid);
 
-  res.render("add/index", {name: user.name})
+  res.render("add/index", { name: user.name });
 });
 
 app.get("/accounts/create", async (req, res) => {
@@ -195,13 +195,53 @@ app.post("/accounts/create", async (req, res) => {
   res.end(JSON.stringify({ status: "completed" }));
 });
 
-// app.post("/products/create", async(req,res)=>{
-//     const uid = await VerifyCookie(req.cookies.session);
+app.post("/products/create", upload.single("image"), async (req, res) => {
+  const uid = await VerifyCookie(req.cookies.session);
 
-//   if(uid == null){ res.redirect("/") }
+  if (uid == null) {
+    res.redirect("/");
+  }
 
-//   const user = await GetUser(uid)
-// } )
+  const user = await GetUser(uid);
+
+  let name = `${utils
+    .computeHash(req.file.originalname + Math.random())
+    .replace(/\//g, "|")}.jpeg`;
+
+  const sharpFile = await sharp(req.file.buffer)
+    .resize({ width: 350, height: 350 })
+    .jpeg({ quality: 70 })
+    .toBuffer();
+  await app.locals.bucket.file(name).createWriteStream().end(sharpFile);
+
+  const productID = utils.generateUUID();
+
+  await db.run(
+    "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    req.body["desktop-name"] || req.body["mobile-name"],
+    productID,
+    user.id,
+    name,
+    req.body.category,
+    req.body.desc,
+    req.body.info,
+    parseInt(req.body.quantity),
+    parseInt(req.body.price.substring(1)) * 100,
+    parseInt(req.body.deposit.substring(1)) * 100
+  );
+
+  cache.del("explore");
+
+  await firedb.collection("products").doc(productID).set({
+    "1263310860": 1,
+  });
+
+  cache.set(`fire-${productID}`, {
+    "1263310860": 1,
+  });
+
+  res.json({message: "Product successfully added."})
+});
 
 // * GET REQUESTS
 app.get("/logout", async (req, res) => {
