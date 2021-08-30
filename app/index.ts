@@ -32,6 +32,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.set("view engine", "ejs");
+app.use("/views", express.static("views"));
 
 //Firebase Setup
 import firebase from "firebase-admin";
@@ -43,6 +45,8 @@ firebase.initializeApp({
 });
 
 const firedb = firebase.firestore();
+app.locals.bucket = admin.storage().bucket()
+
 
 //Stripe setup
 import Stripe from "stripe";
@@ -51,8 +55,14 @@ const stripe = new Stripe(process.env.StripeSK, {
   apiVersion: "2020-08-27",
 });
 
-app.set("view engine", "ejs");
-app.use("/views", express.static("views"));
+//Sharp setup
+import sharp from 'sharp';
+
+//Multer setup
+import multer from 'multer';
+const upload = multer({ storage: multer.memoryStorage(), fileFilter: utils.filter })
+
+
 
 // ! Functions
 async function AuthWithCookies(
@@ -86,6 +96,8 @@ async function GetUser(uid: string): Promise<account> {
     return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
   });
 }
+
+
 
 // ! Routes
 
@@ -121,13 +133,11 @@ app.get("/vendor-login", async (req, res) => {
 app.get("/products/create", async (req, res) => {
   const uid = await VerifyCookie(req.cookies.session);
 
-  if (uid == null) {
-    res.redirect("/");
-  }
+  if(uid == null){ res.redirect("/") }
 
-  const user = await GetUser(uid);
+  const user = await GetUser(uid)
 
-  res.render("add/index", { name: user.name });
+  res.render("add/index", {name: user.name})
 });
 
 app.get("/accounts/create", async (req, res) => {
@@ -184,6 +194,14 @@ app.post("/accounts/create", async (req, res) => {
   res.clearCookie("stripeID");
   res.end(JSON.stringify({ status: "completed" }));
 });
+
+// app.post("/products/create", async(req,res)=>{
+//     const uid = await VerifyCookie(req.cookies.session);
+
+//   if(uid == null){ res.redirect("/") }
+
+//   const user = await GetUser(uid)
+// } )
 
 // * GET REQUESTS
 app.get("/logout", async (req, res) => {
