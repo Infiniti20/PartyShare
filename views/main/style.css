@@ -36,6 +36,7 @@ form {
   border: 1px #adadad solid;
   width: min-content;
   padding: 10px;
+  font-size:13px;
   cursor: pointer;
 }
 .tag-parent input {

@@ -99,13 +99,17 @@ async function GetUser(uid: string): Promise<account> {
 
 // ! Routes
 
-
 // * HTML REQUESTS
 app.get("/", async (req, res) => {
-  const products = await cache.getAsync("explore", async()=>{
-    return await db.all("SELECT id, name, imageURL, price FROM products")
-  })
-  res.render("homepage/index", { acc: req.cookies.session, products });
+  const products = await cache.getAsync("explore", async () => {
+    return await db.all("SELECT id, name, imageURL, price FROM products");
+  });
+  res.render("main/index", { acc: req.cookies.session, products });
+});
+
+app.get("/search", async (req, res) => {
+  const products = await db.all("SELECT id, name, imageURL, price FROM PRODUCTS WHERE name LIKE ? AND category LIKE ?", `%${req.query.query}%`, `%${req.query.category || ''}%`)
+  res.render("main/index", { acc: req.cookies.session, products });
 });
 
 app.get("/faq", async (req, res) => {
@@ -244,7 +248,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
     "1263310860": 1,
   });
 
-  res.json({message: "Product successfully added."})
+  res.json({ message: "Product successfully added." });
 });
 
 // * GET REQUESTS
