@@ -8,7 +8,7 @@ export default {
 		const hash = crypto.createHash('sha256').update(text).digest('base64');
 		return hash
 	},
-	generateUUID: function (pattern?: string):string {
+	generateUID: function (pattern?: string):string {
 		return 'xxxxxxxx-xxxx-4xxxx-xxx-x'.replace(/[xy]/g, function (c) {
 			var r = Math.random() * 16 | 0,
 				v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -17,7 +17,7 @@ export default {
 	},
 	filter: function (req: any, file: any, cb: any) {
 		// Accept images only
-		if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG)$/)) {
+		if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|jfif|JFIF|webm|WEBM)$/)) {
 			req.fileValidationError = 'Only image files are allowed';
 			return cb(new Error('Only image files are allowed'), false);
 		}

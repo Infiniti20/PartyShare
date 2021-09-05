@@ -43,6 +43,7 @@ signInForm.addEventListener("submit", async (ev)=>{
   const user = await firebase.auth().signInWithEmailAndPassword(signInForm.children[1].value, signInForm.children[4].value).catch((error)=>{
     let code = firebaseCodes[error.code]
     showError(document.getElementById(code[0]), code[1])
+    toggleLoading()
   })
 
   toggleLoading()

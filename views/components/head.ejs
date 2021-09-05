@@ -6,5 +6,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&display=swap" rel="stylesheet">
 <base href="http://partyshare.ca/"></base>
+
 <link href="/views/<%=name%>/style.css" rel="stylesheet" type="text/css">
+<% if(locals.scripts){
+    for(let i=0;i<scripts.length; i++){%>
+    <script src="<%=scripts[i]%>"> </script>
+<%}};%>
 <script defer src="/views/<%=name%>/script.js"></script>

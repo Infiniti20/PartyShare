@@ -12,6 +12,7 @@ const checkbox = document.querySelector(
 );
 if (checkbox) {
   checkbox.checked = true;
+  checkbox.classList.add("selected")
 }
 
 document.addEventListener("click", (ev) => {

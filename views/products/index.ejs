@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%-include("../components/head.ejs",{name: 'products', scripts: ["https://cdn.jsdelivr.net/npm/flatpickr"]}) %>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+  </head>
+  <body>
+    <%-include('../components/nav.ejs', {acc})%>
+    <div id="product">
+      <div class="column">
+        <img
+          src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%= product.imageURL %> "
+          alt=""
+          id="image"
+        />
+        <% let price = ((product.price / 100).toFixed(2)) %>
+        <h2 id="mobile-title"><%=product.name%></h2>
+        <p id="price">
+          <span>$<%= price.split(".")[0]%></span>
+          <sup><%= price.split(".")[1]%></sup>
+        </p>
+        <p id="lessor"><span>By: </span><b><%=account.name%></b></p>
+      </div>
+      <div>
+        <h2 id="desktop-title"><%= product.name %></h2>
+        <div id="desc"><%=product.desc%></div>
+        <div id="info"><b>Info</b><br /><%=product.info%></div>
+      </div>
+      <div class="column" id="checkout-container">
+        <form>
+          <div id="checkout">
+            <span id="heading">Rent from</span>
+            <input type="text" id="start" class="date" />
+            <span id="label">to</span>
+            <input type="text" id="end" class="date" />
+
+            <label for="quantity">Quantity</label>
+            <select name="quantity" id="quantity">
+              <% for(let x=1;x<=product.quantity;x++){%>
+              <option value="<%=x%>"><%=x%></option>
+              <% }%>
+            </select>
+
+            <button type="submit">Checkout</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

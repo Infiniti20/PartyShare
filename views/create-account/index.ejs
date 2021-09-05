@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <%-include("../components/head.ejs",{name: 'create-account'}) %>
+    <%-include("../components/head.ejs",{name: 'create-account', scripts:['https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js','https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js']}) %>
   </head>
   <body>
     <%-include('../components/nav.ejs', {acc: false})%>

@@ -65,7 +65,7 @@ const upload = multer({
 });
 
 // ! Functions
-async function AuthWithCookies(
+async function authWithCookies(
   idToken: string,
   days: number,
   res: express.Response
@@ -80,7 +80,7 @@ async function AuthWithCookies(
   res.cookie("session", sessionCookie, options);
 }
 
-async function VerifyCookie(sessionCookie: string): Promise<string> {
+async function verifyCookie(sessionCookie: string): Promise<string> {
   const data = await firebase
     .auth()
     .verifySessionCookie(sessionCookie || "")
@@ -91,10 +91,10 @@ async function VerifyCookie(sessionCookie: string): Promise<string> {
   return data.uid || null;
 }
 
-async function GetUser(uid: string): Promise<account> {
+async function getUser(uid: string): Promise<account> {
   return await cache.getAsync(uid, async () => {
     return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
-  });
+  }) as account;
 }
 
 // ! Routes
@@ -103,13 +103,46 @@ async function GetUser(uid: string): Promise<account> {
 app.get("/", async (req, res) => {
   const products = await cache.getAsync("explore", async () => {
     return await db.all("SELECT id, name, imageURL, price FROM products");
-  });
+  }) as product[];
   res.render("main/index", { acc: req.cookies.session, products });
 });
 
 app.get("/search", async (req, res) => {
-  const products = await db.all("SELECT id, name, imageURL, price FROM PRODUCTS WHERE name LIKE ? AND category LIKE ?", `%${req.query.query}%`, `%${req.query.category || ''}%`)
+  const products = await db.all(
+    "SELECT id, name, imageURL, price FROM products WHERE name LIKE ? AND category LIKE ?",
+    `%${req.query.query}%`,
+    `%${req.query.category || ""}%`
+  ) as product;
   res.render("main/index", { acc: req.cookies.session, products });
+});
+
+app.get("/products/:id", async (req, res) => {
+  let cachedFireData = await cache.getAsync(
+    `fire-${req.params.id}`,
+    async () => {
+      const firedata = await firedb
+        .collection("products")
+        .doc(req.params.id)
+        .get();
+      return firedata.data();
+    },
+    1209600000
+  );
+
+  const product = await cache.getAsync(req.params.id, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id) as product;
+  });
+
+  const account = await cache.getAsync(product.accountID, async () => {
+    return await db.get("SELECT * FROM accounts WHERE id = ?", product.accountID) as account;
+  });
+
+  res.render("products/index", {
+    product,
+    account,
+    dates: cachedFireData,
+    acc: req.cookies.session,
+  });
 });
 
 app.get("/faq", async (req, res) => {
@@ -136,14 +169,14 @@ app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
 });
 
-app.get("/products/create", async (req, res) => {
-  const uid = await VerifyCookie(req.cookies.session);
+app.get("/add/product", async (req, res) => {
+  const uid = await verifyCookie(req.cookies.session);
 
   if (uid == null) {
     res.redirect("/");
   }
 
-  const user = await GetUser(uid);
+  const user = await getUser(uid);
 
   res.render("add/index", { name: user.name });
 });
@@ -176,7 +209,7 @@ app.post("/accounts/login", async (req, res) => {
   let idToken = req.body.idToken;
   const authID = (await firebase.auth().verifyIdToken(idToken)).uid;
 
-  await AuthWithCookies(idToken, 14, res);
+  await authWithCookies(idToken, 14, res);
 
   res.end(JSON.stringify({ status: "success" }));
 });
@@ -185,7 +218,7 @@ app.post("/accounts/create", async (req, res) => {
   let idToken = req.body.idToken;
   const authID = (await firebase.auth().verifyIdToken(idToken)).uid;
 
-  await AuthWithCookies(idToken, 14, res);
+  await authWithCookies(idToken, 14, res);
 
   const account: account = {
     id: req.cookies.stripeID,
@@ -204,13 +237,13 @@ app.post("/accounts/create", async (req, res) => {
 });
 
 app.post("/products/create", upload.single("image"), async (req, res) => {
-  const uid = await VerifyCookie(req.cookies.session);
+  const uid = await verifyCookie(req.cookies.session);
 
   if (uid == null) {
     res.redirect("/");
   }
 
-  const user = await GetUser(uid);
+  const user = await getUser(uid);
 
   let name = `${utils
     .computeHash(req.file.originalname + Math.random())
@@ -222,7 +255,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
     .toBuffer();
   await app.locals.bucket.file(name).createWriteStream().end(sharpFile);
 
-  const productID = utils.generateUUID();
+  const productID = utils.generateUID();
 
   await db.run(
     "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
