@@ -14,6 +14,12 @@ if (checkbox) {
   checkbox.checked = true;
   checkbox.classList.add("selected")
 }
+if(searchParams.get("query")){
+  const searchResultMessage = document.querySelector("#search-results")
+  const numberOfProducts = document.querySelectorAll('.product').length
+  searchResultMessage.textContent = `${numberOfProducts} ${numberOfProducts < 2 ? 'result': 'results'} for `
+  searchResultMessage.nextElementSibling.textContent = `'${searchParams.get("query")}'`
+}
 
 document.addEventListener("click", (ev) => {
   const input = ev.target;

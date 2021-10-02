@@ -107,6 +107,21 @@ form {
   position: relative;
   left: -5px;
 }
+#search-results{
+  margin: 5px 0 5px 10px;
+  font-size:12px;
+}
+#search-results ~ span {
+  font-weight:bold;
+  font-size:12px;
+  color:var(--primary);
+}
+#search-results:empty{
+ display:none;
+}
+#search-results ~ span:empty {
+ display:none;
+}
 @media screen and (max-width: 768px) {
   #product-bar {
     overflow-y: scroll;

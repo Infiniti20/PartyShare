@@ -31,7 +31,6 @@ interface product {
 	info: string,
 	quantity: number,
 	price: number,
-	deposit: number,
 }
 
 

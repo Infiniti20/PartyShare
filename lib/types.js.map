@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../app/types.ts"],
-  "sourcesContent": ["interface order {\r\n\tpaymentId: string,\r\n\tproductId: string,\r\n\taccount: account,\r\n\tcustomer: customer,\r\n\tamount: number,\r\n\tdate: number\r\n}\r\n\r\ninterface account {\r\n\tid: string,\r\n\tname: string\r\n\temail: string,\r\n\tauthID: string,\r\n\tlocation: string,\r\n}\r\n\r\ninterface customer {\r\n\tname: string,\r\n\tid: string,\r\n\temail: string\r\n}\r\n\r\ninterface product {\r\n\tname: string,\r\n\tid: string,\r\n\taccountID: string,\r\n\timageURL: string,\r\n\tcategory: \"Decor\" | \"Centerpieces\" | \"Dining\" | \"Other\",\r\n\tdesc: string,\r\n\tinfo: string,\r\n\tquantity: number,\r\n\tprice: number,\r\n\tdeposit: number,\r\n}\r\n\r\n\r\nexport {order, account, customer, product}"],
+  "sourcesContent": ["interface order {\r\n\tpaymentId: string,\r\n\tproductId: string,\r\n\taccount: account,\r\n\tcustomer: customer,\r\n\tamount: number,\r\n\tdate: number\r\n}\r\n\r\ninterface account {\r\n\tid: string,\r\n\tname: string\r\n\temail: string,\r\n\tauthID: string,\r\n\tlocation: string,\r\n}\r\n\r\ninterface customer {\r\n\tname: string,\r\n\tid: string,\r\n\temail: string\r\n}\r\n\r\ninterface product {\r\n\tname: string,\r\n\tid: string,\r\n\taccountID: string,\r\n\timageURL: string,\r\n\tcategory: \"Decor\" | \"Centerpieces\" | \"Dining\" | \"Other\",\r\n\tdesc: string,\r\n\tinfo: string,\r\n\tquantity: number,\r\n\tprice: number,\r\n}\r\n\r\n\r\nexport {order, account, customer, product}"],
   "mappings": "kEAAA",
   "names": []
 }

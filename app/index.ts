@@ -13,7 +13,7 @@ async function createDB() {
     "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
   );
   db.exec(
-    "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25), accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int, deposit int )"
+    "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25), accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int )"
   );
 }
 
@@ -50,7 +50,7 @@ app.locals.bucket = firebase.storage().bucket();
 //Stripe setup
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.StripeSK, {
+const stripe = new Stripe(process.env.STRIPE_KEY, {
   apiVersion: "2020-08-27",
 });
 
@@ -92,27 +92,27 @@ async function verifyCookie(sessionCookie: string): Promise<string> {
 }
 
 async function getUser(uid: string): Promise<account> {
-  return await cache.getAsync(uid, async () => {
+  return (await cache.getAsync(uid, async () => {
     return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
-  }) as account;
+  })) as account;
 }
 
 // ! Routes
 
 // * HTML REQUESTS
 app.get("/", async (req, res) => {
-  const products = await cache.getAsync("explore", async () => {
+  const products = (await cache.getAsync("explore", async () => {
     return await db.all("SELECT id, name, imageURL, price FROM products");
-  }) as product[];
+  })) as product[];
   res.render("main/index", { acc: req.cookies.session, products });
 });
 
 app.get("/search", async (req, res) => {
-  const products = await db.all(
+  const products = (await db.all(
     "SELECT id, name, imageURL, price FROM products WHERE name LIKE ? AND category LIKE ?",
     `%${req.query.query}%`,
     `%${req.query.category || ""}%`
-  ) as product;
+  )) as product;
   res.render("main/index", { acc: req.cookies.session, products });
 });
 
@@ -130,11 +130,17 @@ app.get("/products/:id", async (req, res) => {
   );
 
   const product = await cache.getAsync(req.params.id, async () => {
-    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id) as product;
+    return (await db.get(
+      "SELECT * FROM products WHERE id = ?",
+      req.params.id
+    )) as product;
   });
 
   const account = await cache.getAsync(product.accountID, async () => {
-    return await db.get("SELECT * FROM accounts WHERE id = ?", product.accountID) as account;
+    return (await db.get(
+      "SELECT * FROM accounts WHERE id = ?",
+      product.accountID
+    )) as account;
   });
 
   res.render("products/index", {
@@ -267,8 +273,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
     req.body.desc,
     req.body.info,
     parseInt(req.body.quantity),
-    parseInt(req.body.price.substring(1)) * 100,
-    parseInt(req.body.deposit.substring(1)) * 100
+    parseInt(req.body.price.substring(1)) * 100
   );
 
   cache.del("explore");

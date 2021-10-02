@@ -41,15 +41,7 @@ document.querySelector(".cost").addEventListener("keydown", function (ev) {
   }
   self.value = val.startsWith("$") ? val : "$" + val;
 });
-
-document.querySelector(".deposit").addEventListener("keydown", function (ev) {
-  let self = document.querySelector(".deposit");
-  let val = self.value;
-  if (isNaN(parseInt(ev.key)) && ev.key != "." && ev.key.length < 2) {
-    ev.preventDefault();
-  }
-  self.value = val.startsWith("$") ? val : "$" + val;
-});
+;
 
 document.querySelector("form").addEventListener("submit", async (ev) => {
   ev.preventDefault();
