@@ -93,7 +93,7 @@ async function verifyCookie(sessionCookie: string): Promise<string> {
 
 async function getUser(uid: string): Promise<account> {
   return (await cache.getAsync(uid, async () => {
-    return await db.get("SELECT * FROM accounts WHERE AuthId = ?", uid);
+    return await db.get("SELECT * FROM accounts WHERE authID = ?", uid);
   })) as account;
 }
 
@@ -129,19 +129,16 @@ app.get("/products/:id", async (req, res) => {
     1209600000
   );
 
-  const product = await cache.getAsync(req.params.id, async () => {
-    return (await db.get(
-      "SELECT * FROM products WHERE id = ?",
-      req.params.id
-    )) as product;
-  });
+  const product = (await cache.getAsync(req.params.id, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
+  })) as product;
 
-  const account = await cache.getAsync(product.accountID, async () => {
-    return (await db.get(
+  const account = (await cache.getAsync(product.accountID, async () => {
+    return await db.get(
       "SELECT * FROM accounts WHERE id = ?",
       product.accountID
-    )) as account;
-  });
+    );
+  })) as account;
 
   res.render("products/index", {
     product,
@@ -213,7 +210,6 @@ app.get("/accounts/create/:hash", async (req, res) => {
 // * POST REQUESTS
 app.post("/accounts/login", async (req, res) => {
   let idToken = req.body.idToken;
-  const authID = (await firebase.auth().verifyIdToken(idToken)).uid;
 
   await authWithCookies(idToken, 14, res);
 
@@ -289,11 +285,38 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
   res.json({ message: "Product successfully added." });
 });
 
+app.post("/checkout", async (req, res) => {
+  // ! ADD DATE VERIFICATION HERE
+  const customer = await stripe.customers.create();
+  const intent = await stripe.setupIntents.create({
+    customer: customer.id,
+  });
+
+  const session = cache.set(
+    customer.id,
+    { name: "", id: customer.id, email: "" } as customer,
+    18000000
+  );
+  res.cookie("customerID", customer.id);
+
+  const { startDate, endDate, quantity, productID } = req.body;
+
+  const daysRented = startDate - endDate;
+
+  const product = (await cache.getAsync(productID, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", productID);
+  })) as product;
+
+  const total = (product.price * quantity) * Math.max(daysRented,1);
+
+});
+
 // * GET REQUESTS
 app.get("/logout", async (req, res) => {
   res.clearCookie("session");
   res.redirect("/");
 });
+app.get("")
 
 app.listen(80, () => {
   console.log("Server running...");

@@ -49,7 +49,7 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
   if (quantsInRange.some((e) => e - quantity > -1) || quantsInRange.length < 1) {
     await fetch("/checkout/", {
       method: "POST",
-      body: JSON.stringify(product.uuid, quantity, startDate, endDate),
+      body: JSON.stringify({productID: product.id, quantity, startDate, endDate}),
     });
   }
 });
