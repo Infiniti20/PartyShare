@@ -64,6 +64,10 @@ const upload = multer({
   fileFilter: utils.filter,
 });
 
+// ! TEMP
+import sourcemap from "source-map-support";
+sourcemap.install();
+
 // ! Functions
 async function authWithCookies(
   idToken: string,
@@ -157,10 +161,6 @@ app.get("/faq", async (req, res) => {
         text: "You can contact me at janakhosa@gmail.com to get in touch, and we can help you set up your account!",
       },
       {
-        title: "Will I get my deposit back?",
-        text: "Yes! It does take 5 to 10 business days for it to actually show up in your account, so you may not see it right away.",
-      },
-      {
         title: "What information does PartyShare store about me?",
         text: "PartyShare only stores your email address and nothing else! This is just to contact you about your order, and give you updates on it.",
       },
@@ -182,6 +182,12 @@ app.get("/add/product", async (req, res) => {
   const user = await getUser(uid);
 
   res.render("add/index", { name: user.name });
+});
+
+app.get("/checkout", (req, res) => {
+  const params = 
+  res.render("checkout/index", {cache.get(`tempcache-${req.cookies.customerID}`, ()=>{})})
+
 });
 
 app.get("/accounts/create", async (req, res) => {
@@ -209,6 +215,7 @@ app.get("/accounts/create/:hash", async (req, res) => {
 
 // * POST REQUESTS
 app.post("/accounts/login", async (req, res) => {
+  console.log(req.body);
   let idToken = req.body.idToken;
 
   await authWithCookies(idToken, 14, res);
@@ -298,17 +305,22 @@ app.post("/checkout", async (req, res) => {
     18000000
   );
   res.cookie("customerID", customer.id);
-
   const { startDate, endDate, quantity, productID } = req.body;
 
-  const daysRented = startDate - endDate;
+  const daysRented = Math.max(startDate - endDate, 1);
 
   const product = (await cache.getAsync(productID, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", productID);
   })) as product;
 
-  const total = (product.price * quantity) * Math.max(daysRented,1);
-
+  const total = product.price * quantity * daysRented;
+  cache.set(`tempcache-${customer.id}`, {
+    acc: req.cookies.session,
+    secret: intent.client_secret,
+    product,
+    info: { quantity, daysRented },
+  });
+  res.redirect("/checkout");
 });
 
 // * GET REQUESTS
@@ -316,7 +328,7 @@ app.get("/logout", async (req, res) => {
   res.clearCookie("session");
   res.redirect("/");
 });
-app.get("")
+app.get("");
 
 app.listen(80, () => {
   console.log("Server running...");

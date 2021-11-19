@@ -50,6 +50,9 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
     await fetch("/checkout/", {
       method: "POST",
       body: JSON.stringify({productID: product.id, quantity, startDate, endDate}),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
 });

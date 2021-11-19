@@ -1,10 +1,10 @@
 interface order {
 	paymentId: string,
 	productId: string,
-	account: account,
+	accountId: string,
 	customer: customer,
 	amount: number,
-	date: number
+	dateReturned: number
 }
 
 interface account {
