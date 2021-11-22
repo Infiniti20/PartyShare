@@ -54,6 +54,7 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
         "Content-Type": "application/json",
       },
     });
+    window.location="/checkout"
   }
 });
 

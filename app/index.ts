@@ -185,9 +185,11 @@ app.get("/add/product", async (req, res) => {
 });
 
 app.get("/checkout", (req, res) => {
-  const params = 
-  res.render("checkout/index", {cache.get(`tempcache-${req.cookies.customerID}`, ()=>{})})
+  if(!req.cookies.customerID){res.redirect("/"); return}
+  const {secret, product, info} = cache.get(`tempcache-${req.cookies.customerID}`, ()=>{})
+  if(!product){res.redirect("/"); return}
 
+  res.render("checkout/index", {secret, product, info, acc:req.cookies.session})
 });
 
 app.get("/accounts/create", async (req, res) => {
@@ -289,7 +291,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
     "1263310860": 1,
   });
 
-  res.json({ message: "Product successfully added." });
+  res.json({ status: "200 OK", message: "Product successfully added." });
 });
 
 app.post("/checkout", async (req, res) => {
@@ -315,12 +317,11 @@ app.post("/checkout", async (req, res) => {
 
   const total = product.price * quantity * daysRented;
   cache.set(`tempcache-${customer.id}`, {
-    acc: req.cookies.session,
     secret: intent.client_secret,
     product,
     info: { quantity, daysRented },
   });
-  res.redirect("/checkout");
+  res.json({status: "200 OK", message: "Checkout page ready."})
 });
 
 // * GET REQUESTS

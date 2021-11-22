@@ -12,15 +12,28 @@ const checkbox = document.querySelector(
 );
 if (checkbox) {
   checkbox.checked = true;
-  checkbox.classList.add("selected")
+  checkbox.classList.add("selected");
 }
-if(searchParams.get("query")){
-  const searchResultMessage = document.querySelector("#search-results")
-  const numberOfProducts = document.querySelectorAll('.product').length
-  searchResultMessage.textContent = `${numberOfProducts} ${numberOfProducts < 2 && numberOfProducts > 0 ? 'result': 'results'} for `
-  searchResultMessage.nextElementSibling.textContent = `'${searchParams.get("query")}'`
+if (searchParams.get("query")) {
+  const searchResultMessage = document.querySelector("#search-results");
+  const numberOfProducts = document.querySelectorAll(".product").length;
+  searchResultMessage.textContent = `${numberOfProducts} ${
+    numberOfProducts < 2 && numberOfProducts > 0 ? "result" : "results"
+  } for `;
+  searchResultMessage.nextElementSibling.textContent = `'${searchParams.get(
+    "query"
+  )}'`;
 }
 
+const productPerRow = window
+  .getComputedStyle(document.querySelector("#product-bar"))
+  .getPropertyValue("grid-template-columns")
+  .split(" ").length;
+
+// const productPerRow = 1;
+if (!(document.querySelectorAll(".product").length > productPerRow)) {
+  document.querySelector("#product-bar").style.display = "block";
+}
 document.addEventListener("click", (ev) => {
   const input = ev.target;
   if (input.type != "radio") {

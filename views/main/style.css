@@ -50,16 +50,16 @@ form {
 #product-bar {
   font-size: 0;
   scrollbar-width: none;
+  align-self: center;
+  display:grid;
+  justify-content: center;
+  justify-items: center;
+  grid-template-columns: repeat( auto-fit, 250px);
 }
 #product-bar::-webkit-scrollbar {
   display: none;
 }
-#product-bar .product-container:nth-child(1) {
-  margin-left: 10px;
-}
-#product-bar .product-container:last-child {
-  margin-right: 10px;
-}
+
 .product-header {
   font-size: 30px;
   margin: 10px;
@@ -74,6 +74,7 @@ form {
   cursor: pointer;
   display: inline-block;
   margin: 5px;
+  text-align:left;
 }
 .product-image {
   width: 225px;
@@ -106,6 +107,7 @@ form {
   z-index: -1;
   position: relative;
   left: -5px;
+  top:4px;
 }
 #search-results{
   margin: 5px 0 5px 10px;
@@ -122,7 +124,7 @@ form {
 #search-results ~ span:empty {
  display:none;
 }
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 767px) {
   #product-bar {
     overflow-y: scroll;
     white-space: nowrap;
