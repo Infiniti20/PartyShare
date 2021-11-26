@@ -165,3 +165,6 @@ button {
 .flatpickr-day {
   border-radius: 0 !important;
 }
+.flatpickr-day.nextMonthDay{
+  color: #4242428a !important;
+}

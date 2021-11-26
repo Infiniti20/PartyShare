@@ -31,9 +31,13 @@ const productPerRow = window
   .split(" ").length;
 
 // const productPerRow = 1;
-if (!(document.querySelectorAll(".product").length > productPerRow)) {
+if (
+  window.matchMedia("(min-width:768px)").matches &&
+  document.querySelectorAll(".product").length < productPerRow
+) {
   document.querySelector("#product-bar").style.display = "block";
 }
+
 document.addEventListener("click", (ev) => {
   const input = ev.target;
   if (input.type != "radio") {

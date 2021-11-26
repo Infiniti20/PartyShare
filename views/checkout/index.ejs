@@ -7,23 +7,45 @@
   <body>
     <%-include('../components/nav.ejs', {acc})%>
     <div id="checkout">
-        <div class="item-container">
-            <div class="items">
-                <span class="header">Item</span>
-                <span class="header">Price Per Item</span>
-                <span class="header">Qty.</span>
-                <span class="header">Days</span>
-                <span class="header">Amount Due</span>
+      <div class="item-container">
+        <div class="items">
+          <span class="header">Item</span>
+          <span class="header">Price Per Item</span>
+          <span class="header">Qty.</span>
+          <span class="header">Days Rented</span>
+          <span class="header">Amount Due</span>
+          <div class="block"></div>
+          <div class="block"></div>
+          <div class="block"></div>
+          <div class="block"></div>
+          <div class="block"></div>
+          <img
+            src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%=product.imageURL%>"
+          />
+          <span><%=product.price/100%></span>
+          <span><%=info.quantity%></span>
+          <span><%=info.daysRented%></span>
+          <span
+            ><%=(((product.price * info.quantity) *
+            info.daysRented)/100).toFixed(2)%></span
+          >
+        </div>
+      </div>
 
-                <div class="block"></div><div class="block"></div>
-                <div class="block"></div><div class="block"></div><div class="block"></div>
+      <form id="payment-form" data-secret="<%-secret%>">
+        <label for="name">Name</label>
+        <input id="name" placeholder="John Doe" />
+        <label for="email">Email</label>
+        <input id="email" placeholder="me@example.com" />
 
-                <img src="https://storage.googleapis.com/partyshare-47d15.appspot.com/<%=product.imageURL%>">
-                <span><%=product.cost%></span>
-                <span><%=product.deposit%></span>
-                <span><%=info.quantity%></span>
-                <span><%=info.daysRented%></span>
-                <span><%=((product.price * info.quantity) * info.daysRented).toFixed(2)%></span>
+        <label for="card-element">Card</label>
+        <div id="card-element"></div>
+        <p id="card-error" role="alert"></p>
+        <button id="submit" disabled>
+          <div class="spinner hidden" id="spinner"></div>
+          <span id="button-text">Checkout</span>
+        </button>
+      </form>
     </div>
   </body>
 </html>

@@ -51,7 +51,7 @@ form {
   font-size: 0;
   scrollbar-width: none;
   align-self: center;
-  display:grid;
+  display: grid;
   justify-content: center;
   justify-items: center;
   grid-template-columns: repeat( auto-fit, 250px);
@@ -126,6 +126,7 @@ form {
 }
 @media screen and (max-width: 767px) {
   #product-bar {
+    display:block;
     overflow-y: scroll;
     white-space: nowrap;
   }

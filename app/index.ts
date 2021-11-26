@@ -185,11 +185,30 @@ app.get("/add/product", async (req, res) => {
 });
 
 app.get("/checkout", (req, res) => {
-  if(!req.cookies.customerID){res.redirect("/"); return}
-  const {secret, product, info} = cache.get(`tempcache-${req.cookies.customerID}`, ()=>{})
-  if(!product){res.redirect("/"); return}
+  try {
+    if (!req.cookies.customerID) {
+      res.redirect("/");
+      return;
+    }
+    const { secret, product, info } = cache.get(
+      `tempcache-${req.cookies.customerID}`,
+      () => {}
+    );
 
-  res.render("checkout/index", {secret, product, info, acc:req.cookies.session})
+    if (!product) {
+      res.redirect("/");
+      return;
+    }
+
+    res.render("checkout/index", {
+      secret,
+      product,
+      info,
+      acc: req.cookies.session,
+    });
+  } catch {
+    res.redirect("/");
+  }
 });
 
 app.get("/accounts/create", async (req, res) => {
@@ -316,12 +335,16 @@ app.post("/checkout", async (req, res) => {
   })) as product;
 
   const total = product.price * quantity * daysRented;
-  cache.set(`tempcache-${customer.id}`, {
-    secret: intent.client_secret,
-    product,
-    info: { quantity, daysRented },
-  });
-  res.json({status: "200 OK", message: "Checkout page ready."})
+  cache.set(
+    `tempcache-${customer.id}`,
+    {
+      secret: intent.client_secret,
+      product,
+      info: { quantity, daysRented },
+    },
+    3600000
+  );
+  res.json({ status: "200 OK", message: "Checkout page ready." });
 });
 
 // * GET REQUESTS
