@@ -120,7 +120,7 @@ app.get("/search", async (req, res) => {
   res.render("main/index", { acc: req.cookies.session, products });
 });
 
-app.get("/products/:id", async (req, res) => {
+app.get("/product/:id", async (req, res) => {
   let cachedFireData = await cache.getAsync(
     `fire-${req.params.id}`,
     async () => {
@@ -172,7 +172,7 @@ app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
 });
 
-app.get("/add/product", async (req, res) => {
+app.get("/products/create", async (req, res) => {
   const uid = await verifyCookie(req.cookies.session);
 
   if (uid == null) {
@@ -218,10 +218,10 @@ app.get("/accounts/create", async (req, res) => {
     country: "CA",
     business_type: "individual",
   });
-
+  console.log(`${URL}/accounts/create`)
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
-    refresh_url: `${URL}/accounts/create`,
+    refresh_url: `${URL}/accounts/create/`,
     return_url: `${URL}/accounts/create/${hash}`,
     type: "account_onboarding",
   });
@@ -312,6 +312,33 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
 
   res.json({ status: "200 OK", message: "Product successfully added." });
 });
+
+app.post("/orders/new", async(req,res)=>{
+  const customer = req.cookies.customerID
+  const paymentMethods = await stripe.paymentMethods.list({
+    customer,
+    type:'card'
+  })
+  let card = paymentMethods.data[0].id
+
+  const { secret, product, info } = cache.get(
+    `tempcache-${customer}`,
+    () => {}
+  );
+  cache.del(`tempcache-${customer}`)
+  const account = (await cache.getAsync(product.accountID, async () => {
+    return await db.get(
+      "SELECT * FROM accounts WHERE id = ?",
+      product.accountID
+    );
+  })) as account;
+
+  const firebaseData = cache.getAsync(`fire${product.id}`, async()=>{
+    const fireQuery = await firedb.collection("products").doc(product.id).get()
+    return fireQuery.data()
+  })
+
+})
 
 app.post("/checkout", async (req, res) => {
   // ! ADD DATE VERIFICATION HERE

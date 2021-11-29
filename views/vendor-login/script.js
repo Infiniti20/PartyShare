@@ -1,8 +1,8 @@
-var firebaseConfig = {
-  apiKey: "AIzaSyCX81B-1etrrNgZTbt3qtBFCcC09kkgEYM",
-  authDomain: "partyshare-47d15.firebaseapp.com",
-  projectId: "partyshare-47d15",
-  appId: "1:850103630383:web:002de45e99c31ff51b64da",
+const firebaseConfig = {
+  apiKey: "AIzaSyClUYzNkCx7Yo5lDbUZacTGbLOtspW6l5k",
+  authDomain: "partyshare-2e5c5.firebaseapp.com",
+  projectId: "partyshare-2e5c5",
+  appId: "1:175286295892:web:d138909c85992d2da5bcc1"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
