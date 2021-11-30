@@ -64,6 +64,9 @@ const upload = multer({
   fileFilter: utils.filter,
 });
 
+//Date editing setup
+import {updateDates} from './editDates'
+
 // ! TEMP
 import sourcemap from "source-map-support";
 sourcemap.install();
@@ -313,7 +316,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
   res.json({ status: "200 OK", message: "Product successfully added." });
 });
 
-app.post("/orders/new", async(req,res)=>{
+app.post("/orders/create", async(req,res)=>{
   const customer = req.cookies.customerID
   const paymentMethods = await stripe.paymentMethods.list({
     customer,
@@ -333,11 +336,12 @@ app.post("/orders/new", async(req,res)=>{
     );
   })) as account;
 
-  const firebaseData = cache.getAsync(`fire${product.id}`, async()=>{
+  const firebaseData = await cache.getAsync(`fire-${product.id}`, async()=>{
     const fireQuery = await firedb.collection("products").doc(product.id).get()
     return fireQuery.data()
   })
 
+  updateDates(firebaseData, )
 })
 
 app.post("/checkout", async (req, res) => {
@@ -385,3 +389,4 @@ app.listen(80, () => {
   console.log("Server running...");
   console.log("");
 });
+
