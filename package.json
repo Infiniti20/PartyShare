@@ -20,7 +20,7 @@
     "firebase-admin": "^9.11.0",
     "long-timeout": "^0.1.1",
     "multer": "^1.4.3",
-    "nodemailer": "^6.6.3",
+    "nodemailer": "^6.7.2",
     "sharp": "^0.28.3",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",
     "@types/multer": "^1.4.7",
+    "@types/nodemailer": "^6.4.4",
     "@types/sharp": "^0.28.5",
     "@types/source-map-support": "^0.5.4",
     "@types/sqlite3": "^3.1.7",

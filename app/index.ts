@@ -65,7 +65,7 @@ const upload = multer({
 });
 
 //Date editing setup
-import {updateDates} from './editDates'
+import { updateDates, DateTable } from "./editDates";
 
 // ! TEMP
 import sourcemap from "source-map-support";
@@ -221,7 +221,7 @@ app.get("/accounts/create", async (req, res) => {
     country: "CA",
     business_type: "individual",
   });
-  console.log(`${URL}/accounts/create`)
+  console.log(`${URL}/accounts/create`);
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
     refresh_url: `${URL}/accounts/create/`,
@@ -316,19 +316,29 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
   res.json({ status: "200 OK", message: "Product successfully added." });
 });
 
-app.post("/orders/create", async(req,res)=>{
-  const customer = req.cookies.customerID
+app.post("/orders/create", async (req, res) => {
+  const customer = req.cookies.customerID;
   const paymentMethods = await stripe.paymentMethods.list({
     customer,
-    type:'card'
-  })
-  let card = paymentMethods.data[0].id
+    type: "card",
+  });
+  let card = paymentMethods.data[0].id;
 
-  const { secret, product, info } = cache.get(
-    `tempcache-${customer}`,
-    () => {}
-  );
-  cache.del(`tempcache-${customer}`)
+  const {
+    secret,
+    product,
+    info,
+  }: {
+    secret: string;
+    product: product;
+    info: {
+      quantity: number;
+      daysRented: number;
+      startDate: number;
+      endDate: number;
+    };
+  } = cache.get(`tempcache-${customer}`, () => {});
+  cache.del(`tempcache-${customer}`);
   const account = (await cache.getAsync(product.accountID, async () => {
     return await db.get(
       "SELECT * FROM accounts WHERE id = ?",
@@ -336,13 +346,24 @@ app.post("/orders/create", async(req,res)=>{
     );
   })) as account;
 
-  const firebaseData = await cache.getAsync(`fire-${product.id}`, async()=>{
-    const fireQuery = await firedb.collection("products").doc(product.id).get()
-    return fireQuery.data()
-  })
+  const firebaseData = await cache.getAsync(`fire-${product.id}`, async () => {
+    const fireQuery = await firedb.collection("products").doc(product.id).get();
+    return fireQuery.data();
+  });
 
-  updateDates(firebaseData, )
-})
+  const updatedDates: DateTable = updateDates(
+    firebaseData,
+    info.startDate,
+    info.endDate,
+    info.quantity,
+    product.quantity
+  );
+
+  await firedb.collection("products").doc(product.id).set(updatedDates, {merge: true})
+
+  cache.del(`fire-${product.id}`)
+  cache.del(`tempcache-${customer}`)
+});
 
 app.post("/checkout", async (req, res) => {
   // ! ADD DATE VERIFICATION HERE
@@ -371,7 +392,7 @@ app.post("/checkout", async (req, res) => {
     {
       secret: intent.client_secret,
       product,
-      info: { quantity, daysRented },
+      info: { quantity, daysRented, startDate, endDate },
     },
     3600000
   );
@@ -389,4 +410,3 @@ app.listen(80, () => {
   console.log("Server running...");
   console.log("");
 });
-

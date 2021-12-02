@@ -76,5 +76,6 @@ function updateDates(
 
 export {
     createDateRange,
-    updateDates
+    updateDates,
+    DateTable
 }
