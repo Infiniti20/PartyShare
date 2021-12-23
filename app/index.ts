@@ -123,6 +123,7 @@ app.get("/search", async (req, res) => {
   res.render("main/index", { acc: req.cookies.session, products });
 });
 
+// ! Add option to disable renting through site, force contact through email for third party businesses.
 app.get("/product/:id", async (req, res) => {
   let cachedFireData = await cache.getAsync(
     `fire-${req.params.id}`,
@@ -350,7 +351,7 @@ app.post("/orders/create", async (req, res) => {
     const fireQuery = await firedb.collection("products").doc(product.id).get();
     return fireQuery.data();
   });
-
+  console.log(firebaseData)
   const updatedDates: DateTable = updateDates(
     firebaseData,
     info.startDate,
@@ -358,11 +359,35 @@ app.post("/orders/create", async (req, res) => {
     info.quantity,
     product.quantity
   );
+  console.log(updateDates)
+  await firedb
+    .collection("products")
+    .doc(product.id)
+    .set(updatedDates, { merge: true });
 
-  await firedb.collection("products").doc(product.id).set(updatedDates, {merge: true})
+  cache.del(`fire-${product.id}`);
+  cache.del(`tempcache-${customer}`);
 
-  cache.del(`fire-${product.id}`)
-  cache.del(`tempcache-${customer}`)
+  utils.sendMail(
+    req.body.email,
+    "Order Confirmation",
+    "views/templates/location.html",
+    {
+      USER: req.body.name,
+      EMAIL: req.body.email,
+      DATE: new Date(info.startDate).toDateString(),
+      ADDRESS: account.location,
+    }
+  );
+
+  utils.sendMail(account.email, "New Order", "views/templates/order.html", {
+    USER: account.name,
+    EMAIL: req.body.email,
+    ITEM: product.name,
+    QUANT: info.quantity,
+    DATE: new Date(info.startDate).toDateString(),
+    DATE2: new Date(info.endDate).toDateString(),
+  });
 });
 
 app.post("/checkout", async (req, res) => {
@@ -404,7 +429,6 @@ app.get("/logout", async (req, res) => {
   res.clearCookie("session");
   res.redirect("/");
 });
-app.get("");
 
 app.listen(80, () => {
   console.log("Server running...");

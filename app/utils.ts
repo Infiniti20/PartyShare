@@ -64,14 +64,14 @@ export default {
     templatePath: string,
     props: { [prop: string]: any }
   ) {
-    const template = await this.getFileStream("views/templates/order.html");
+    const template = await this.getFileStream(templatePath);
     const mailOptions = {
       from: process.env.EMAIL,
       to: recipient,
       subject,
       html: this.replaceValues(template, props),
     };
-    transporter.sendMail(mailOptions, function (error, info) {
+    transporter.sendMail(mailOptions, function (error: any, info: any) {
       if (error) {
         console.log(error);
       }

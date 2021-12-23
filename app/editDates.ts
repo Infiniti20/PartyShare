@@ -1,5 +1,3 @@
-import { time } from "console";
-
 const msInADay: number = 86400000;
 
 function createDateRange(start: number, end: number): number[] {
@@ -47,35 +45,29 @@ function updateDates(
 
   //Check if the amount of product on that day minus quantity ordered is over 0, or if there are no orders during that timespan
   if (
-    quantitiesInRange.some(
-      (productOnDay) =>
-        productOnDay - quantity > 0 || quantitiesInRange.length < 1
-    )
+    quantitiesInRange.some((productOnDay) => productOnDay - quantity > 0) ||
+    quantitiesInRange.length < 1
   ) {
     //Edit dateTable object to get final dates
-    for (let i = 0; i < MediaKeySession.length; i++) {
-      if (dateTable[dateTableKeys[i]]) {
+    for (let i = 0; i < datesToBeAdded.length; i++) {
+      if (dateTable[datesToBeAdded[i]]) {
         //If date already exists, subtract quantity from it
-        dateTable[dateTableKeys[i]] -= quantity;
+        dateTable[datesToBeAdded[i]] -= quantity;
       } else {
         //Else add that day, and set quantity to total quantity minus amount ordered
-        dateTable[dateTableKeys[i]] = totalQuantityForProduct - quantity;
+        dateTable[datesToBeAdded[i]] = totalQuantityForProduct - quantity;
       }
     }
     const returnDate = endDate + msInADay;
     if (dateTable[returnDate]) {
-        //Add quantity back to date object after order completed if existing quantity on that day
-        dateTable[returnDate] += quantity;
+      //Add quantity back to date object after order completed if existing quantity on that day
+      dateTable[returnDate] += quantity;
     } else {
-        //Else set quantity to total
-        dateTable[returnDate] = totalQuantityForProduct;
+      //Else set quantity to total
+      dateTable[returnDate] = totalQuantityForProduct;
     }
-    return dateTable
+    return dateTable;
   }
 }
 
-export {
-    createDateRange,
-    updateDates,
-    DateTable
-}
+export { createDateRange, updateDates, DateTable };
