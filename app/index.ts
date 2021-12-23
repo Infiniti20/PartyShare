@@ -71,6 +71,15 @@ import { updateDates, DateTable } from "./editDates";
 import sourcemap from "source-map-support";
 sourcemap.install();
 
+//Scheduling setup
+import {
+  addAction,
+  addEditAction,
+  Job,
+  loadJobs,
+  scheduleJob,
+} from "./schedule";
+
 // ! Functions
 async function authWithCookies(
   idToken: string,
@@ -104,6 +113,76 @@ async function getUser(uid: string): Promise<account> {
   })) as account;
 }
 
+async function persistSchedule() {
+  const rawJobs = await firedb.collection("scheduling").get();
+  let jobs: { [job: string]: any } = {};
+  rawJobs.docs.forEach((doc) => {
+    jobs[doc.id] = doc.data() as Job;
+  });
+  await loadJobs(jobs);
+}
+
+async function addJob(
+  actionName: string,
+  func: Function,
+  args: any,
+  date: Date
+) {
+  await firedb.collection("scheduling").add({
+    date: date.getTime(),
+    name: actionName,
+    args,
+    passed: false,
+  });
+  scheduleJob(func, args, date);
+}
+
+async function editDB(id: string) {
+  await firedb
+    .collection("scheduling")
+    .doc(id)
+    .set({ passed: true }, { merge: true });
+}
+
+async function completeOrder(
+  productID: string,
+  total: number,
+  customer:customer,
+  customerCard: string
+) {
+  console.log("hi")
+  const product = (await cache.getAsync(productID, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", productID);
+  })) as product;
+
+  const account = (await cache.getAsync(product.accountID, async () => {
+    return await db.get(
+      "SELECT * FROM accounts WHERE id = ?",
+      product.accountID
+    );
+  })) as account;
+  
+  // utils.sendMail(account.email)
+
+  const percentageTaken = (total / 100) * parseInt(process.env.PERCENTAGE);
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: total,
+    currency: "cad",
+    customer: customer.id,
+    payment_method: customerCard,
+    application_fee_amount: percentageTaken,
+    off_session: true,
+    confirm: true,
+    transfer_data: {
+      destination: product.accountID,
+    },
+  });
+}
+
+addEditAction(editDB);
+addAction("completeOrder",completeOrder)
+
 // ! Routes
 
 // * HTML REQUESTS
@@ -132,7 +211,7 @@ app.get("/product/:id", async (req, res) => {
         .collection("products")
         .doc(req.params.id)
         .get();
-      return firedata.data();
+      return await firedata.data();
     },
     1209600000
   );
@@ -339,6 +418,7 @@ app.post("/orders/create", async (req, res) => {
       endDate: number;
     };
   } = cache.get(`tempcache-${customer}`, () => {});
+
   cache.del(`tempcache-${customer}`);
   const account = (await cache.getAsync(product.accountID, async () => {
     return await db.get(
@@ -349,9 +429,9 @@ app.post("/orders/create", async (req, res) => {
 
   const firebaseData = await cache.getAsync(`fire-${product.id}`, async () => {
     const fireQuery = await firedb.collection("products").doc(product.id).get();
-    return fireQuery.data();
+    return await fireQuery.data();
   });
-  console.log(firebaseData)
+  console.log(firebaseData);
   const updatedDates: DateTable = updateDates(
     firebaseData,
     info.startDate,
@@ -359,7 +439,8 @@ app.post("/orders/create", async (req, res) => {
     info.quantity,
     product.quantity
   );
-  console.log(updateDates)
+
+  console.log(updateDates);
   await firedb
     .collection("products")
     .doc(product.id)
@@ -374,7 +455,7 @@ app.post("/orders/create", async (req, res) => {
     "views/templates/location.html",
     {
       USER: req.body.name,
-      EMAIL: req.body.email,
+      EMAIL: account.email,
       DATE: new Date(info.startDate).toDateString(),
       ADDRESS: account.location,
     }
@@ -388,6 +469,9 @@ app.post("/orders/create", async (req, res) => {
     DATE: new Date(info.startDate).toDateString(),
     DATE2: new Date(info.endDate).toDateString(),
   });
+
+  const total = product.price * info.quantity * info.daysRented;
+  addJob("completeOrder", completeOrder, [product.id, total, {id: customer, name: req.body.name, email: req.body.email}, card], new Date(1640286605000))
 });
 
 app.post("/checkout", async (req, res) => {
@@ -430,7 +514,8 @@ app.get("/logout", async (req, res) => {
   res.redirect("/");
 });
 
-app.listen(80, () => {
+app.listen(80, async () => {
   console.log("Server running...");
   console.log("");
+  await persistSchedule();
 });

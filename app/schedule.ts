@@ -21,8 +21,11 @@ function addEditAction(func: Function): Function {
 }
 
 function scheduleJob(func: Function, args: any[], date: Date) {
+  console.log(actions)
   let delay = calculateDelay(date);
+  console.log(delay)
   lt.setTimeout(() => {
+    console.log("executed")
     func(...args);
   }, delay);
 }
@@ -36,17 +39,18 @@ function calculateDelay(targetDate: Date): number {
   return delay;
 }
 
-function loadJobs(jobs: { [job: string]: Job }) {
+async function loadJobs(jobs: { [job: string]: Job }) {
   let date = new Date().getTime();
   let ids = Object.keys(jobs);
   const jobList = Object.values(jobs);
 
   for (let i = 0; i < jobList.length; i++) {
     let job = jobList[i];
-    if (date < job.date) {
+    console.log(date, job.date)
+    if (date > job.date) {
       if (job.passed == false) {
         actions[job.name](...job.args);
-        actions["edit"](ids[i]);
+        await actions["edit"](ids[i]);
       }
       continue;
     }
@@ -55,4 +59,4 @@ function loadJobs(jobs: { [job: string]: Job }) {
   }
 }
 
-export { addAction, addEditAction, loadJobs, scheduleJob };
+export { addAction, addEditAction, loadJobs, scheduleJob, Job};
