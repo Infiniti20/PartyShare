@@ -101,13 +101,13 @@ async function verifyCookie(sessionCookie: string): Promise<string> {
     .auth()
     .verifySessionCookie(sessionCookie || "")
     .catch(() => {
-      return null;
+      return {uid: ""};
     });
-
-  return data.uid || null;
+  return data.uid || undefined;
 }
 
 async function getUser(uid: string): Promise<account> {
+  console.log(uid)
   return (await cache.getAsync(uid, async () => {
     return await db.get("SELECT * FROM accounts WHERE authID = ?", uid);
   })) as account;
@@ -147,10 +147,12 @@ async function editDB(id: string) {
 async function completeOrder(
   productID: string,
   total: number,
-  customer:customer,
-  customerCard: string
+  customer: customer,
+  customerCard: string,
+  returnDate: number,
+  quantity: number
 ) {
-  console.log("hi")
+  console.log("hi");
   const product = (await cache.getAsync(productID, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", productID);
   })) as product;
@@ -161,8 +163,30 @@ async function completeOrder(
       product.accountID
     );
   })) as account;
-  
-  // utils.sendMail(account.email)
+
+  utils.sendMail(
+    customer.email,
+    "Order Pickup",
+    "views/templates/pickup-cus.html",
+    {
+      USER: customer.name,
+      EMAIL: account.email,
+      LOCATION: account.location,
+    }
+  );
+
+  utils.sendMail(
+    account.email,
+    "Order Pickup",
+    "views/templates/pickup-vendor.html",
+    {
+      USER: account.name,
+      CUSTOMER: customer.name,
+      ITEM: product.name,
+      QUANT: quantity,
+      DATE: new Date(returnDate).toDateString()
+    }
+  );
 
   const percentageTaken = (total / 100) * parseInt(process.env.PERCENTAGE);
 
@@ -181,7 +205,7 @@ async function completeOrder(
 }
 
 addEditAction(editDB);
-addAction("completeOrder",completeOrder)
+addAction("completeOrder", completeOrder);
 
 // ! Routes
 
@@ -258,7 +282,7 @@ app.get("/vendor-login", async (req, res) => {
 app.get("/products/create", async (req, res) => {
   const uid = await verifyCookie(req.cookies.session);
 
-  if (uid == null) {
+  if (uid == undefined) {
     res.redirect("/");
   }
 
@@ -301,10 +325,9 @@ app.get("/accounts/create", async (req, res) => {
     country: "CA",
     business_type: "individual",
   });
-  console.log(`${URL}/accounts/create`);
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
-    refresh_url: `${URL}/accounts/create/`,
+    refresh_url: `${URL}/accounts/create`,
     return_url: `${URL}/accounts/create/${hash}`,
     type: "account_onboarding",
   });
@@ -471,7 +494,23 @@ app.post("/orders/create", async (req, res) => {
   });
 
   const total = product.price * info.quantity * info.daysRented;
-  addJob("completeOrder", completeOrder, [product.id, total, {id: customer, name: req.body.name, email: req.body.email}, card], new Date(1640286605000))
+  addJob(
+    "completeOrder",
+    completeOrder,
+    [
+      product.id,
+      total,
+      {
+        id: customer,
+        name: req.body.name,
+        email: req.body.email,
+        quantity: info.quantity,
+      },
+      card,
+      info.endDate,
+    ],
+    new Date(1640286605000)
+  );
 });
 
 app.post("/checkout", async (req, res) => {

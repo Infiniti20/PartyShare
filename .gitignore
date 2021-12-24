@@ -3,4 +3,5 @@ node_modules/
 .schema
 admin-sdk.json
 .env
-database/
+partyshare.db-shm
+partyshare.db-wal
