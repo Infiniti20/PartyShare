@@ -41,13 +41,13 @@ document.querySelector(".cost").addEventListener("keydown", function (ev) {
   }
   self.value = val.startsWith("$") ? val : "$" + val;
 });
-;
+
 
 document.querySelector("form").addEventListener("submit", async (ev) => {
   ev.preventDefault();
 
   toggleLoading();
-  await fetch("/products/create", {
+  await fetch(`/products/${document.querySelector(".edit") ? `edit/${ev.target.id}` : "create"}`, {
     method: "POST",
     body: new FormData(document.querySelector("form")),
   });

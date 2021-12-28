@@ -1,16 +1,16 @@
 const msInADay: number = 86400000;
 
 function createDateRange(start: number, end: number): number[] {
-  let dateList: number[] = [];
+  const dateList: number[] = [];
   let day: number = start;
-  if (end == start) {
+  if (end === start) {
     return [start];
   }
 
   end -= msInADay;
 
-  while (day != end) {
-    //Add 1 day, and push to list of dates
+  while (day !== end) {
+    // Add 1 day, and push to list of dates
     day += msInADay;
     dateList.push(day);
   }
@@ -28,42 +28,42 @@ function updateDates(
   quantity: number,
   totalQuantityForProduct: number
 ) {
-  let dateTableKeys: string[] = Object.keys(dateTable);
+  const dateTableKeys: string[] = Object.keys(dateTable);
 
-  //Filter for dates within start date and end date
-  let datesInRange = dateTableKeys.filter((date) => {
+  // Filter for dates within start date and end date
+  const datesInRange = dateTableKeys.filter((date) => {
     return parseInt(date) >= startDate && parseInt(date) <= endDate;
   });
 
-  //Get quanties of dates within start date and end date
-  let quantitiesInRange = datesInRange.map(
+  // Get quanties of dates within start date and end date
+  const quantitiesInRange = datesInRange.map(
     (timestamp) => dateTable[timestamp.toString()]
   );
 
-  //Get list of dates to be added
-  let datesToBeAdded = createDateRange(startDate, endDate);
+  // Get list of dates to be added
+  const datesToBeAdded = createDateRange(startDate, endDate);
 
-  //Check if the amount of product on that day minus quantity ordered is over 0, or if there are no orders during that timespan
+  // Check if the amount of product on that day minus quantity ordered is over 0, or if there are no orders during that timespan
   if (
     quantitiesInRange.some((productOnDay) => productOnDay - quantity > 0) ||
     quantitiesInRange.length < 1
   ) {
-    //Edit dateTable object to get final dates
-    for (let i = 0; i < datesToBeAdded.length; i++) {
-      if (dateTable[datesToBeAdded[i]]) {
-        //If date already exists, subtract quantity from it
-        dateTable[datesToBeAdded[i]] -= quantity;
+    // Edit dateTable object to get final dates
+    for (const date of datesToBeAdded) {
+      if (dateTable[date]) {
+        // If date already exists, subtract quantity from it
+        dateTable[date] -= quantity;
       } else {
-        //Else add that day, and set quantity to total quantity minus amount ordered
-        dateTable[datesToBeAdded[i]] = totalQuantityForProduct - quantity;
+        // Else add that day, and set quantity to total quantity minus amount ordered
+        dateTable[date] = totalQuantityForProduct - quantity;
       }
     }
     const returnDate = endDate + msInADay;
     if (dateTable[returnDate]) {
-      //Add quantity back to date object after order completed if existing quantity on that day
+      // Add quantity back to date object after order completed if existing quantity on that day
       dateTable[returnDate] += quantity;
     } else {
-      //Else set quantity to total
+      // Else set quantity to total
       dateTable[returnDate] = totalQuantityForProduct;
     }
     return dateTable;

@@ -1,0 +1,9 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "no-floating-promises": true,
+        "no-shadowed-variable": false,
+        "radix":false
+
+    }
+}

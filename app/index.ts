@@ -9,10 +9,10 @@ import { order, account, customer, product } from "./types";
 const db = new Database("database/partyshare.db");
 
 async function createDB() {
-  db.exec(
+  await db.exec(
     "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
   );
-  db.exec(
+  await db.exec(
     "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25), accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int )"
   );
 }
@@ -22,20 +22,20 @@ createDB();
 import { CacheLayer } from "./cache";
 const cache = new CacheLayer();
 
-//Express imports
+// Express imports
 import express from "express";
 import cookieParser from "cookie-parser";
 
 const app = express();
 
-//Express addons for parsing data from the request
+// Express addons for parsing data from the request
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 app.use("/views", express.static("views"));
 
-//Firebase Setup
+// Firebase Setup
 import firebase from "firebase-admin";
 import adminSDK from "../admin-sdk.json";
 
@@ -45,16 +45,16 @@ firebase.initializeApp({
 });
 
 const firedb = firebase.firestore();
-app.locals.bucket = firebase.storage().bucket();
+const bucket = firebase.storage().bucket();
 
-//Stripe setup
+// Stripe setup
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_KEY, {
   apiVersion: "2020-08-27",
 });
 
-//Sharp setup
+// Sharp setup
 import sharp from "sharp";
 
 //Multer setup
@@ -64,14 +64,14 @@ const upload = multer({
   fileFilter: utils.filter,
 });
 
-//Date editing setup
+// Date editing setup
 import { updateDates, DateTable } from "./editDates";
 
 // ! TEMP
 import sourcemap from "source-map-support";
 sourcemap.install();
 
-//Scheduling setup
+// Scheduling setup
 import {
   addAction,
   addEditAction,
@@ -88,7 +88,7 @@ async function authWithCookies(
 ): Promise<void> {
   const expiresIn = 60 * 60 * 24 * days * 1000;
 
-  let sessionCookie = await firebase
+  const sessionCookie = await firebase
     .auth()
     .createSessionCookie(idToken, { expiresIn });
 
@@ -101,13 +101,12 @@ async function verifyCookie(sessionCookie: string): Promise<string> {
     .auth()
     .verifySessionCookie(sessionCookie || "")
     .catch(() => {
-      return {uid: ""};
+      return { uid: "" };
     });
   return data.uid || undefined;
 }
 
 async function getUser(uid: string): Promise<account> {
-  console.log(uid)
   return (await cache.getAsync(uid, async () => {
     return await db.get("SELECT * FROM accounts WHERE authID = ?", uid);
   })) as account;
@@ -115,7 +114,7 @@ async function getUser(uid: string): Promise<account> {
 
 async function persistSchedule() {
   const rawJobs = await firedb.collection("scheduling").get();
-  let jobs: { [job: string]: any } = {};
+  const jobs: { [job: string]: any } = {};
   rawJobs.docs.forEach((doc) => {
     jobs[doc.id] = doc.data() as Job;
   });
@@ -124,7 +123,7 @@ async function persistSchedule() {
 
 async function addJob(
   actionName: string,
-  func: Function,
+  func: (...args: any) => any,
   args: any,
   date: Date
 ) {
@@ -164,6 +163,7 @@ async function completeOrder(
     );
   })) as account;
 
+  // tslint:disable-next-line:no-floating-promises
   utils.sendMail(
     customer.email,
     "Order Pickup",
@@ -175,6 +175,7 @@ async function completeOrder(
     }
   );
 
+  // tslint:disable-next-line:no-floating-promises
   utils.sendMail(
     account.email,
     "Order Pickup",
@@ -184,7 +185,7 @@ async function completeOrder(
       CUSTOMER: customer.name,
       ITEM: product.name,
       QUANT: quantity,
-      DATE: new Date(returnDate).toDateString()
+      DATE: new Date(returnDate).toDateString(),
     }
   );
 
@@ -228,7 +229,7 @@ app.get("/search", async (req, res) => {
 
 // ! Add option to disable renting through site, force contact through email for third party businesses.
 app.get("/product/:id", async (req, res) => {
-  let cachedFireData = await cache.getAsync(
+  const cachedFireData = await cache.getAsync(
     `fire-${req.params.id}`,
     async () => {
       const firedata = await firedb
@@ -239,6 +240,14 @@ app.get("/product/:id", async (req, res) => {
     },
     1209600000
   );
+  let uid = "";
+  if (req.cookies.session !== undefined) {
+    uid = (await cache.getAsync(
+      req.cookies.session,
+      async () => await verifyCookie(req.cookies.session),
+      3600000
+    )) as string;
+  }
 
   const product = (await cache.getAsync(req.params.id, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
@@ -250,12 +259,13 @@ app.get("/product/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-
-  res.render("products/index", {
+  console.log(uid);
+  res.render("product-info/index", {
     product,
     account,
     dates: cachedFireData,
     acc: req.cookies.session,
+    uid: uid ?? "",
   });
 });
 
@@ -280,26 +290,49 @@ app.get("/vendor-login", async (req, res) => {
 });
 
 app.get("/products/create", async (req, res) => {
-  const uid = await verifyCookie(req.cookies.session);
+  const uid = (await cache.getAsync(
+    req.cookies.session,
+    async () => {
+      return await verifyCookie(req.cookies.session);
+    },
+    3600000
+  )) as string;
 
-  if (uid == undefined) {
+  if (uid === undefined) {
     res.redirect("/");
   }
 
   const user = await getUser(uid);
 
-  res.render("add/index", { name: user.name });
+  res.render("product/index", { name: user.name });
+});
+
+app.get("/products/edit/:id", async (req, res) => {
+  const product = (await cache.getAsync(req.params.id, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
+  })) as product;
+
+  const account = (await cache.getAsync(product.accountID, async () => {
+    return await db.get(
+      "SELECT * FROM accounts WHERE id = ?",
+      product.accountID
+    );
+  })) as account;
+
+  res.render("product/index", { name: account.name, product });
 });
 
 app.get("/checkout", (req, res) => {
   try {
     if (!req.cookies.customerID) {
       res.redirect("/");
-      return;
+      return undefined;
     }
     const { secret, product, info } = cache.get(
       `tempcache-${req.cookies.customerID}`,
-      () => {}
+      () => {
+        return "";
+      }
     );
 
     if (!product) {
@@ -343,7 +376,7 @@ app.get("/accounts/create/:hash", async (req, res) => {
 // * POST REQUESTS
 app.post("/accounts/login", async (req, res) => {
   console.log(req.body);
-  let idToken = req.body.idToken;
+  const idToken = req.body.idToken;
 
   await authWithCookies(idToken, 14, res);
 
@@ -351,7 +384,7 @@ app.post("/accounts/login", async (req, res) => {
 });
 
 app.post("/accounts/create", async (req, res) => {
-  let idToken = req.body.idToken;
+  const idToken = req.body.idToken;
   const authID = (await firebase.auth().verifyIdToken(idToken)).uid;
 
   await authWithCookies(idToken, 14, res);
@@ -373,15 +406,20 @@ app.post("/accounts/create", async (req, res) => {
 });
 
 app.post("/products/create", upload.single("image"), async (req, res) => {
-  const uid = await verifyCookie(req.cookies.session);
-
-  if (uid == null) {
+  const uid = (await cache.getAsync(
+    req.cookies.session,
+    async () => {
+      await verifyCookie(req.cookies.session);
+    },
+    3600000
+  )) as string;
+  if (uid === undefined) {
     res.redirect("/");
   }
 
   const user = await getUser(uid);
 
-  let name = `${utils
+  const name = `${utils
     .computeHash(req.file.originalname + Math.random())
     .replace(/\//g, "|")}.jpeg`;
 
@@ -389,7 +427,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
     .resize({ width: 350, height: 350 })
     .jpeg({ quality: 70 })
     .toBuffer();
-  await app.locals.bucket.file(name).createWriteStream().end(sharpFile);
+  await bucket.file(name).createWriteStream({metadata: {cacheControl: "no-cache, max-age=0"}}).end(sharpFile);
 
   const productID = utils.generateUID();
 
@@ -419,6 +457,51 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
   res.json({ status: "200 OK", message: "Product successfully added." });
 });
 
+app.post("/products/edit/:id", upload.single("image"), async (req, res) => {
+  const uid = (await cache.getAsync(
+    req.cookies.session,
+    async () => {
+      await verifyCookie(req.cookies.session);
+    },
+    3600000
+  )) as string;
+  if (uid === undefined) {
+    res.redirect("/");
+  }
+  console.log(req.body);
+  const user = await getUser(uid);
+
+  const product = (await cache.getAsync(req.params.id, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
+  })) as product;
+  const name = product.imageURL;
+
+  if (req.file) {
+    console.log("updated image", name, product.imageURL)
+    const sharpFile = await sharp(req.file.buffer)
+      .resize({ width: 350, height: 350 })
+      .jpeg({ quality: 70 })
+      .toBuffer();
+    await bucket.file(name).createWriteStream({metadata: {cacheControl: "no-cache, max-age=0"}}).end(sharpFile);
+  }
+
+  await db.run(
+    "UPDATE products SET name = ?, category = ?, desc = ?, info = ?, quantity = ?, price = ? WHERE id = ?",
+    req.body["desktop-name"] || req.body["mobile-name"],
+    req.body.category,
+    req.body.desc,
+    req.body.info,
+    parseInt(req.body.quantity),
+    parseInt(req.body.price.substring(1)) * 100,
+    req.params.id
+  );
+
+  cache.del("explore");
+  cache.del(req.params.id)
+  res.json({ status: "200 OK", message: "Product successfully updated." });
+
+});
+
 app.post("/orders/create", async (req, res) => {
   const customer = req.cookies.customerID;
   const paymentMethods = await stripe.paymentMethods.list({
@@ -440,7 +523,9 @@ app.post("/orders/create", async (req, res) => {
       startDate: number;
       endDate: number;
     };
-  } = cache.get(`tempcache-${customer}`, () => {});
+  } = cache.get(`tempcache-${customer}`, () => {
+    return "";
+  });
 
   cache.del(`tempcache-${customer}`);
   const account = (await cache.getAsync(product.accountID, async () => {
@@ -547,6 +632,32 @@ app.post("/checkout", async (req, res) => {
   res.json({ status: "200 OK", message: "Checkout page ready." });
 });
 
+app.delete("/products/delete/", async (req, res) => {
+  const uid = (await cache.getAsync(
+    req.cookies.session,
+    async () => {
+      return await verifyCookie(req.cookies.session);
+    },
+    3600000
+  )) as string;
+  console.log(uid);
+  if (uid === undefined) {
+    res.status(403).send("403 Not Allowed");
+    return;
+  }
+
+  const product = (await cache.getAsync(req.body.id, async () => {
+    return await db.get("SELECT * FROM products WHERE id = ?", req.body.id);
+  })) as product;
+
+  const user = await getUser(uid);
+  if (user.id == product.accountID) {
+    await db.run("DELETE FROM products WHERE id = ?", req.body.id);
+  }
+  cache.del(req.body.id);
+  cache.del("explore")
+  res.json({ status: "200 OK", message: "Product successfully deleted." })
+});
 // * GET REQUESTS
 app.get("/logout", async (req, res) => {
   res.clearCookie("session");

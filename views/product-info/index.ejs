@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%-include("../components/head.ejs",{name: 'products', scripts: ["https://cdn.jsdelivr.net/npm/flatpickr"]}) %>
+    <%-include("../components/head.ejs",{name: 'product-info', scripts:
+    ["https://cdn.jsdelivr.net/npm/flatpickr"]}) %>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
@@ -16,7 +17,8 @@
           alt=""
           id="image"
         />
-        <% let price = ((product.price / 100).toFixed(2)) %>
+        <% let price = ((product.price / 100).toFixed(2)); console.log(uid) %>
+
         <h2 id="mobile-title"><%=product.name%></h2>
         <p id="price">
           <span>$<%= price.split(".")[0]%></span>
@@ -32,6 +34,7 @@
       <div class="column" id="checkout-container">
         <form>
           <div id="checkout">
+            <% if(uid != account.authID){%>
             <span id="heading">Rent from</span>
             <input type="text" id="start" class="date" />
             <span id="label">to</span>
@@ -45,6 +48,10 @@
             </select>
 
             <button type="submit">Checkout</button>
+            <% } else{%>
+            <button class="edit">Edit</button>
+            <button class="delete">Delete</button>
+            <% }%>
           </div>
         </form>
       </div>

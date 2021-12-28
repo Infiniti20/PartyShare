@@ -7,13 +7,13 @@ flatpickr(".date", {
 });
 
 function editDropdown(element, int) {
-  const previousValue = parseInt(element.value)
+  const previousValue = parseInt(element.value);
   let html = "";
   for (let i = 1; i <= int; i++) {
     html += `<option value="${i}">${i}</option>`;
   }
   element.innerHTML = html;
-  element.value = Math.min(int, previousValue)
+  element.value = Math.min(int, previousValue);
 }
 
 const dates = JSON.parse(
@@ -24,7 +24,7 @@ const product = JSON.parse(
 );
 
 document.querySelector("form").addEventListener("submit", async (ev) => {
-  ev.preventDefault()
+  ev.preventDefault();
   const startDate = new Date(document.querySelector("#start").value).setHours(
     0,
     0,
@@ -46,15 +46,23 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
 
   let quantsInRange = datesInRange.map((e) => dates[e.toString()]);
 
-  if (quantsInRange.some((e) => e - quantity > -1) || quantsInRange.length < 1) {
+  if (
+    quantsInRange.some((e) => e - quantity > -1) ||
+    quantsInRange.length < 1
+  ) {
     await fetch("/checkout/", {
       method: "POST",
-      body: JSON.stringify({productID: product.id, quantity, startDate, endDate}),
+      body: JSON.stringify({
+        productID: product.id,
+        quantity,
+        startDate,
+        endDate,
+      }),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    window.location="/checkout"
+    window.location = "/checkout";
   }
 });
 
@@ -98,3 +106,28 @@ document.querySelectorAll(".date").forEach((ele) => {
     }
   });
 });
+
+document.querySelector(".delete").addEventListener("click", async function (ev) {
+  ev.preventDefault()
+  const deleteProduct = confirm(
+    "Are you sure you would like to delete this product?"
+  );
+  if (deleteProduct) {
+    await fetch(`/products/delete/`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        id: product.id,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    window.location = "/"
+  }
+});
+
+document.querySelector(".edit").addEventListener("click", async function (ev) {
+  ev.preventDefault()
+  window.location = `products/edit/${product.id}/`
+});
+

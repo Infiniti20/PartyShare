@@ -10,11 +10,11 @@ class CacheLayer {
 
   get(
     key: string,
-    func: Function,
+    func: ()=>any,
     expiration: number = defaultCacheExpiration
   ) {
     let val = this._cache[key];
-    if (val == undefined) {
+    if (val === undefined) {
       val = func();
       this.set(key, val, expiration);
     }
@@ -23,11 +23,11 @@ class CacheLayer {
 
   async getAsync(
     key: string,
-    func: Function,
+    func: ()=>any,
     expiration: number = defaultCacheExpiration
   ) {
     let val = this._cache[key];
-    if (val == undefined) {
+    if (val === undefined) {
       val = func();
       this.set(key, val, expiration);
     }
@@ -50,7 +50,7 @@ class CacheLayer {
   }
 
   exists(key: string) {
-    return this._cache[key] != undefined;
+    return this._cache[key] !== undefined;
   }
 }
 
