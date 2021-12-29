@@ -21,9 +21,7 @@ function addEditAction(func: Function): Function {
 }
 
 function scheduleJob(func: Function, args: any[], date: Date) {
-  console.log(actions)
   let delay = calculateDelay(date);
-  console.log(delay)
   lt.setTimeout(() => {
     console.log("executed")
     func(...args);

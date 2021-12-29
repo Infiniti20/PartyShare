@@ -151,7 +151,6 @@ async function completeOrder(
   returnDate: number,
   quantity: number
 ) {
-  console.log("hi");
   const product = (await cache.getAsync(productID, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", productID);
   })) as product;
@@ -594,7 +593,7 @@ app.post("/orders/create", async (req, res) => {
       card,
       info.endDate,
     ],
-    new Date(1640286605000)
+    new Date(info.startDate)
   );
 });
 
@@ -613,7 +612,9 @@ app.post("/checkout", async (req, res) => {
   res.cookie("customerID", customer.id);
   const { startDate, endDate, quantity, productID } = req.body;
 
-  const daysRented = Math.max(startDate - endDate, 1);
+  const daysRented = Math.max((endDate - startDate) / 86400000, 1);
+
+  console.log()
 
   const product = (await cache.getAsync(productID, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", productID);

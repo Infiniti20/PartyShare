@@ -9,11 +9,17 @@ flatpickr(".date", {
 function editDropdown(element, int) {
   const previousValue = parseInt(element.value);
   let html = "";
-  for (let i = 1; i <= int; i++) {
-    html += `<option value="${i}">${i}</option>`;
+  for (let i = 0; i < int; i++) {
+    html += `<option value="${i + 1}">${i + 1}</option>`;
+  }
+  if (html == "") {
+    element.innerHTML = `<option value="0">0</option>`;
+    element.value = Math.min(int, previousValue);
+    return null;
   }
   element.innerHTML = html;
   element.value = Math.min(int, previousValue);
+  return html;
 }
 
 const dates = JSON.parse(
@@ -24,6 +30,7 @@ const product = JSON.parse(
 );
 
 document.querySelector("form").addEventListener("submit", async (ev) => {
+  console.log("here");
   ev.preventDefault();
   const startDate = new Date(document.querySelector("#start").value).setHours(
     0,
@@ -45,6 +52,8 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
   });
 
   let quantsInRange = datesInRange.map((e) => dates[e.toString()]);
+
+  console.log(quantsInRange);
 
   if (
     quantsInRange.some((e) => e - quantity > -1) ||
@@ -68,6 +77,7 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
 
 document.querySelectorAll(".date").forEach((ele) => {
   ele.addEventListener("change", () => {
+    console.log("changed");
     let startDate = new Date(document.querySelector("#start").value).setHours(
       0,
       0,
@@ -93,6 +103,7 @@ document.querySelectorAll(".date").forEach((ele) => {
     }
 
     if (startDate && endDate) {
+      document.querySelector("button").disabled = false;
       let listOfDates = Object.keys(dates);
       let datesInRange = listOfDates.filter((date) => {
         return date >= startDate && date <= endDate;
@@ -102,32 +113,41 @@ document.querySelectorAll(".date").forEach((ele) => {
         return a - b;
       })[0];
       console.log(quantsInRange, maxQuantity, datesInRange);
-      editDropdown(quantity, maxQuantity || product.quantity);
+      if (!editDropdown(quantity, maxQuantity ?? product.quantity)) {
+        document.querySelector("button").disabled = true;
+      }
+    } else {
+      document.querySelector("button").disabled = true;
     }
   });
 });
 
-document.querySelector(".delete").addEventListener("click", async function (ev) {
-  ev.preventDefault()
-  const deleteProduct = confirm(
-    "Are you sure you would like to delete this product?"
-  );
-  if (deleteProduct) {
-    await fetch(`/products/delete/`, {
-      method: "DELETE",
-      body: JSON.stringify({
-        id: product.id,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+if (document.querySelector(".delete")) {
+  document
+    .querySelector(".delete")
+    .addEventListener("click", async function (ev) {
+      ev.preventDefault();
+      const deleteProduct = confirm(
+        "Are you sure you would like to delete this product?"
+      );
+      if (deleteProduct) {
+        await fetch(`/products/delete/`, {
+          method: "DELETE",
+          body: JSON.stringify({
+            id: product.id,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        window.location = "/";
+      }
     });
-    window.location = "/"
-  }
-});
 
-document.querySelector(".edit").addEventListener("click", async function (ev) {
-  ev.preventDefault()
-  window.location = `products/edit/${product.id}/`
-});
-
+  document
+    .querySelector(".edit")
+    .addEventListener("click", async function (ev) {
+      ev.preventDefault();
+      window.location = `products/edit/${product.id}/`;
+    });
+}
