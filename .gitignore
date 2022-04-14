@@ -5,3 +5,4 @@ admin-sdk.json
 .env
 partyshare.db-shm
 partyshare.db-wal
+lib/

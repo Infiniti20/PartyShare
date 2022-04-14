@@ -10,7 +10,7 @@ class CacheLayer {
 
   get(
     key: string,
-    func: ()=>any,
+    func: () => any,
     expiration: number = defaultCacheExpiration
   ) {
     let val = this._cache[key];
@@ -23,7 +23,7 @@ class CacheLayer {
 
   async getAsync(
     key: string,
-    func: ()=>any,
+    func: () => any,
     expiration: number = defaultCacheExpiration
   ) {
     let val = this._cache[key];
