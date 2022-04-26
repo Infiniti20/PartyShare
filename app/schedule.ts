@@ -44,7 +44,6 @@ async function loadJobs(jobs: { [job: string]: Job }) {
 
   for (let i = 0; i < jobList.length; i++) {
     let job = jobList[i];
-    console.log(date, job.date)
     if (date > job.date) {
       if (job.passed == false) {
         actions[job.name](...job.args);
