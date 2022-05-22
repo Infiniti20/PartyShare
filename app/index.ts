@@ -13,8 +13,9 @@ async function createDB() {
     "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
   );
   await db.exec(
-    "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25), accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int )"
+    "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25) PRIMARY KEY, accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int, FOREIGN KEY(accountID) REFERENCES accounts(id) )"
   );
+  await db.exec("PRAGMA foreign_keys = ON")
 }
 
 createDB();
@@ -258,7 +259,6 @@ app.get("/product/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-  console.log(uid);
   res.render("product-info/index", {
     product,
     account,
@@ -613,8 +613,6 @@ app.post("/checkout", async (req, res) => {
   const { startDate, endDate, quantity, productID } = req.body;
 
   const daysRented = Math.max((endDate - startDate) / 86400000, 1);
-
-  console.log()
 
   const product = (await cache.getAsync(productID, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", productID);

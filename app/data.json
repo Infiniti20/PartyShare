@@ -1,0 +1,31 @@
+[
+  {
+    "stmt": "SELECT * FROM products;",
+    "header": [
+      "name",
+      "id",
+      "accountID",
+      "imageURL",
+      "category",
+      "desc",
+      "info",
+      "quantity",
+      "price",
+      "deposit"
+    ],
+    "rows": [
+      [
+        "Flower Boquet",
+        "c306118b-b72f-4a655-8c3-e",
+        "acct_1KA3bxRPlbOeKVou",
+        "NeDL7GtW1or10wCAy0pWsKpBDr00F|qyo9Wqszeh6gs=.jpeg",
+        "Decor",
+        "Sorry this got griefed.",
+        "eaeaeaeae",
+        "5",
+        "2000",
+        "NULL"
+      ]
+    ]
+  }
+]
