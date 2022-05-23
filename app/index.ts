@@ -325,12 +325,10 @@ app.get("/products/edit/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-  const subimages = (await cache.getAsync(product.id, async () => {
-    return await db.all(
+  const subimages =  await db.all(
       "SELECT * FROM subimages WHERE productId = ?",
       product.id
-    );
-  })) as subimage[];
+    ) as subimage[];
   res.render("product/index", { name: account.name, product, subimages });
 });
 
