@@ -1,24 +1,24 @@
 import utils from "./utils";
 import dotenv from "dotenv";
 dotenv.config();
-const URL = "http://partyshare.ca";
+const URL = process.env.BASE_URL
 
 // Database setup
 import { Database } from "./database";
-import { order, account, customer, product } from "./types";
+import { order, account, customer, product, subimage } from "./types";
 const db = new Database("database/partyshare.db");
 
-async function createDB() {
-  await db.exec(
-    "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
-  );
-  await db.exec(
-    "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25) PRIMARY KEY, accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int, FOREIGN KEY(accountID) REFERENCES accounts(id) )"
-  );
-  await db.exec("PRAGMA foreign_keys = ON")
-}
+// async function createDB() {
+//   await db.exec(
+//     "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
+//   );
+//   await db.exec(
+//     "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25) PRIMARY KEY, accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int, FOREIGN KEY(accountID) REFERENCES accounts(id) )"
+//   );
+//   await db.exec("PRAGMA foreign_keys = ON");
+// }
 
-createDB();
+// createDB();
 
 import { CacheLayer } from "./cache";
 const cache = new CacheLayer();
@@ -184,7 +184,7 @@ async function completeOrder(
       USER: account.name,
       CUSTOMER: customer.name,
       ITEM: product.name,
-      QUANT: quantity,
+      QUANTITY: quantity,
       DATE: new Date(returnDate).toDateString(),
     }
   );
@@ -259,12 +259,20 @@ app.get("/product/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
+
+  const subimages = (await db.all(
+    "SELECT imageURL FROM subimages WHERE productId = ?",
+    product.id
+  )) as subimage[];
+  console.log(subimages);
+
   res.render("product-info/index", {
     product,
     account,
     dates: cachedFireData,
     acc: req.cookies.session,
     uid: uid ?? "",
+    subimages,
   });
 });
 
@@ -317,8 +325,13 @@ app.get("/products/edit/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-
-  res.render("product/index", { name: account.name, product });
+  const subimages = (await cache.getAsync(product.id, async () => {
+    return await db.all(
+      "SELECT * FROM subimages WHERE productId = ?",
+      product.id
+    );
+  })) as subimage[];
+  res.render("product/index", { name: account.name, product, subimages });
 });
 
 app.get("/checkout", (req, res) => {
@@ -357,10 +370,11 @@ app.get("/accounts/create", async (req, res) => {
     country: "CA",
     business_type: "individual",
   });
+  console.log(`${URL}/accounts/create`)
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
-    refresh_url: `${URL}/accounts/create`,
-    return_url: `${URL}/accounts/create/${hash}`,
+    refresh_url: `${URL}/accounts/create/`,
+    return_url: `${URL}/accounts/create/${hash}/`,
     type: "account_onboarding",
   });
 
@@ -426,7 +440,10 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
     .resize({ width: 350, height: 350 })
     .jpeg({ quality: 70 })
     .toBuffer();
-  await bucket.file(name).createWriteStream({metadata: {cacheControl: "no-cache, max-age=0"}}).end(sharpFile);
+  await bucket
+    .file(name)
+    .createWriteStream({ metadata: { cacheControl: "no-cache, max-age=0" } })
+    .end(sharpFile);
 
   const productID = utils.generateUID();
 
@@ -476,12 +493,15 @@ app.post("/products/edit/:id", upload.single("image"), async (req, res) => {
   const name = product.imageURL;
 
   if (req.file) {
-    console.log("updated image", name, product.imageURL)
+    console.log("updated image", name, product.imageURL);
     const sharpFile = await sharp(req.file.buffer)
       .resize({ width: 350, height: 350 })
       .jpeg({ quality: 70 })
       .toBuffer();
-    await bucket.file(name).createWriteStream({metadata: {cacheControl: "no-cache, max-age=0"}}).end(sharpFile);
+    await bucket
+      .file(name)
+      .createWriteStream({ metadata: { cacheControl: "no-cache, max-age=0" } })
+      .end(sharpFile);
   }
 
   await db.run(
@@ -496,9 +516,8 @@ app.post("/products/edit/:id", upload.single("image"), async (req, res) => {
   );
 
   cache.del("explore");
-  cache.del(req.params.id)
+  cache.del(req.params.id);
   res.json({ status: "200 OK", message: "Product successfully updated." });
-
 });
 
 app.post("/orders/create", async (req, res) => {
@@ -576,8 +595,21 @@ app.post("/orders/create", async (req, res) => {
     DATE: new Date(info.startDate).toDateString(),
     DATE2: new Date(info.endDate).toDateString(),
   });
-
   const total = product.price * info.quantity * info.daysRented;
+
+  console.log(info, [
+    product.id,
+    total,
+    {
+      id: customer,
+      name: req.body.name,
+      email: req.body.email,
+      quantity: info.quantity,
+    },
+    card,
+    info.endDate,
+  ]);
+
   addJob(
     "completeOrder",
     completeOrder,
@@ -588,10 +620,10 @@ app.post("/orders/create", async (req, res) => {
         id: customer,
         name: req.body.name,
         email: req.body.email,
-        quantity: info.quantity,
       },
       card,
       info.endDate,
+      info.quantity,
     ],
     new Date(info.startDate)
   );
@@ -654,8 +686,8 @@ app.delete("/products/delete/", async (req, res) => {
     await db.run("DELETE FROM products WHERE id = ?", req.body.id);
   }
   cache.del(req.body.id);
-  cache.del("explore")
-  res.json({ status: "200 OK", message: "Product successfully deleted." })
+  cache.del("explore");
+  res.json({ status: "200 OK", message: "Product successfully deleted." });
 });
 // * GET REQUESTS
 app.get("/logout", async (req, res) => {

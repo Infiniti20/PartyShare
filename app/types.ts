@@ -33,5 +33,9 @@ interface product {
 	price: number,
 }
 
+interface subimage {
+	imageURL: string,
+	productId: string
+}
 
-export {order, account, customer, product}
+export {order, account, customer, product, subimage}

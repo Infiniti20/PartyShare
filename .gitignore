@@ -1,6 +1,5 @@
 node_modules/
 .log
-.schema
 admin-sdk.json
 .env
 partyshare.db-shm
