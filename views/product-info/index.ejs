@@ -18,21 +18,14 @@
           id="image"
         />
         <div id="sub-container">
+          <% subimages.forEach(image => { %>
           <img
-            src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/NeDL7GtW1or10wCAy0pWsKpBDr00F%7Cqyo9Wqszeh6gs=.jpeg"
+            src=<%= `https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${image.imageURL}` %>
             alt=""
             class="sub"
           />
-          <img
-            src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/NeDL7GtW1or10wCAy0pWsKpBDr00F%7Cqyo9Wqszeh6gs=.jpeg"
-            alt=""
-            class="sub"
-          />
-          <img
-            src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/NeDL7GtW1or10wCAy0pWsKpBDr00F%7Cqyo9Wqszeh6gs=.jpeg"
-            alt=""
-            class="sub"
-          />
+          <% }) %>
+
         </div>
         <% let price = ((product.price / 100).toFixed(2)); %>
 

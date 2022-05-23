@@ -11,7 +11,7 @@
         <div id="flex-product">
             <div class="column">
                 <%- locals.product ? `<img class="product-image" src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${product.imageURL}" alt="">` : '<div class="product-image">Upload Image</div>' ;%>
-                <%- subimages %> 
+                <%- locals.subimages %> 
                 <input class="mobile title" placeholder="New Item" name="mobile-name" value="<%= locals.product ? locals.product.name : ""%>"></input>
                 <input class="cost" value=<%=locals.product ? `$${(locals.product.price / 100).toFixed(2)}` : "$0.00"%> name="price"></input>
                 <div style="text-align:left;margin-top:10px;margin-bottom:10px;">

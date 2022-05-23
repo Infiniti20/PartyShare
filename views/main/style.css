@@ -55,6 +55,7 @@ form {
   justify-content: center;
   justify-items: center;
   grid-template-columns: repeat( auto-fit, 250px);
+  margin: 10px 5px;
 }
 #product-bar::-webkit-scrollbar {
   display: none;
@@ -73,7 +74,7 @@ form {
   border: 1px #dddddd solid;
   cursor: pointer;
   display: inline-block;
-  margin: 10px;
+  margin: 5px;
   text-align:left;
 }
 .product-image {

@@ -385,6 +385,7 @@ app.get("/accounts/create/:hash", async (req, res) => {
 });
 
 // * POST REQUESTS
+
 app.post("/accounts/login", async (req, res) => {
   console.log(req.body);
   const idToken = req.body.idToken;
@@ -446,7 +447,7 @@ app.post("/products/create", upload.single("image"), async (req, res) => {
   const productID = utils.generateUID();
 
   await db.run(
-    "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
     req.body["desktop-name"] || req.body["mobile-name"],
     productID,
     user.id,
