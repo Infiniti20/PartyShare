@@ -14,7 +14,7 @@
         <% let categories = ["Decor", "Dining", "Centerpieces", "Other"] %> 
               <% for ( let x=0; x < categories.length; x++ ) {%>
               <div class="tag-parent">
-                  <input type="radio" id=<%=categories[x]%> name="radio"></input>
+                  <input type="radio" id=<%=categories[x]%> name="radio">
                   <label class="tag" for=<%=categories[x]%>><%=categories[x]%></label>
               </div>
           <% };%>

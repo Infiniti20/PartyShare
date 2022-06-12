@@ -1,7 +1,7 @@
 import utils from "./utils";
 import dotenv from "dotenv";
 dotenv.config();
-const URL = process.env.BASE_URL
+const URL = process.env.BASE_URL;
 
 // Database setup
 import { Database } from "./database";
@@ -325,10 +325,10 @@ app.get("/products/edit/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-  const subimages =  await db.all(
-      "SELECT * FROM subimages WHERE productId = ?",
-      product.id
-    ) as subimage[];
+  const subimages = (await db.all(
+    "SELECT * FROM subimages WHERE productId = ?",
+    product.id
+  )) as subimage[];
   res.render("product/index", { name: account.name, product, subimages });
 });
 
@@ -368,7 +368,7 @@ app.get("/accounts/create", async (req, res) => {
     country: "CA",
     business_type: "individual",
   });
-  console.log(`${URL}/accounts/create`)
+  console.log(`${URL}/accounts/create`);
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
     refresh_url: `${URL}/accounts/create/`,
@@ -384,7 +384,7 @@ app.get("/accounts/create/:hash", async (req, res) => {
   res.render("create-account/index");
 });
 
-// * POST REQUESTS
+//! * POST REQUESTS
 
 app.post("/accounts/login", async (req, res) => {
   console.log(req.body);
@@ -417,60 +417,91 @@ app.post("/accounts/create", async (req, res) => {
   res.end(JSON.stringify({ status: "completed" }));
 });
 
-app.post("/products/create", upload.single("image"), async (req, res) => {
-  const uid = (await cache.getAsync(
-    req.cookies.session,
-    async () => {
-      await verifyCookie(req.cookies.session);
-    },
-    3600000
-  )) as string;
-  if (uid === undefined) {
-    res.redirect("/");
+app.post(
+  "/products/create",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "sub-image-1", maxCount: 1 },
+    { name: "sub-image-2", maxCount: 1 },
+    { name: "sub-image-3", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    const uid = (await cache.getAsync(
+      req.cookies.session,
+      async () => {
+        await verifyCookie(req.cookies.session);
+      },
+      3600000
+    )) as string;
+    if (uid === undefined) {
+      res.redirect("/");
+    }
+
+    const user = await getUser(uid);
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const mainImage = files["image"][0];
+
+    const name = `${utils
+      .computeHash(mainImage.originalname + Math.random())
+      .replace(/\//g, "|")}.jpeg`;
+
+    const sharpFile = await sharp(mainImage.buffer)
+      .resize({ width: 350, height: 350 })
+      .jpeg({ quality: 70 })
+      .toBuffer();
+    await bucket
+      .file(name)
+      .createWriteStream({ metadata: { cacheControl: "no-cache, max-age=0" } })
+      .end(sharpFile);
+
+    console.log(req.files);
+    const productID = utils.generateUID();
+
+    for (let i = 1; i < Object.keys(req.files).length; i++) {
+      const subimage = files[`sub-image-${i}`][0];
+      const subname = `${utils
+        .computeHash(subimage.originalname + Math.random())
+        .replace(/\//g, "|")}.jpeg`;
+      const sharpSubFile = await sharp(subimage.buffer)
+        .resize({ width: 350, height: 350 })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      bucket
+        .file(subname)
+        .createWriteStream({
+          metadata: { cacheControl: "no-cache, max-age=0" },
+        })
+        .end(sharpSubFile);
+
+      await db.run("INSERT INTO subimages VALUES(?,?)", subname, productID);
+    }
+
+    await db.run(
+      "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      req.body["desktop-name"] || req.body["mobile-name"],
+      productID,
+      user.id,
+      name,
+      req.body.category,
+      req.body.desc,
+      req.body.info,
+      parseInt(req.body.quantity),
+      parseInt(req.body.price.substring(1)) * 100
+    );
+
+    cache.del("explore");
+
+    await firedb.collection("products").doc(productID).set({
+      "1263310860": 1,
+    });
+
+    cache.set(`fire-${productID}`, {
+      "1263310860": 1,
+    });
+
+    res.json({ status: "200 OK", message: "Product successfully added." });
   }
-
-  const user = await getUser(uid);
-
-  const name = `${utils
-    .computeHash(req.file.originalname + Math.random())
-    .replace(/\//g, "|")}.jpeg`;
-
-  const sharpFile = await sharp(req.file.buffer)
-    .resize({ width: 350, height: 350 })
-    .jpeg({ quality: 70 })
-    .toBuffer();
-  await bucket
-    .file(name)
-    .createWriteStream({ metadata: { cacheControl: "no-cache, max-age=0" } })
-    .end(sharpFile);
-
-  const productID = utils.generateUID();
-
-  await db.run(
-    "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    req.body["desktop-name"] || req.body["mobile-name"],
-    productID,
-    user.id,
-    name,
-    req.body.category,
-    req.body.desc,
-    req.body.info,
-    parseInt(req.body.quantity),
-    parseInt(req.body.price.substring(1)) * 100
-  );
-
-  cache.del("explore");
-
-  await firedb.collection("products").doc(productID).set({
-    "1263310860": 1,
-  });
-
-  cache.set(`fire-${productID}`, {
-    "1263310860": 1,
-  });
-
-  res.json({ status: "200 OK", message: "Product successfully added." });
-});
+);
 
 app.post("/products/edit/:id", upload.single("image"), async (req, res) => {
   const uid = (await cache.getAsync(
