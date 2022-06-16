@@ -21,7 +21,7 @@
     "long-timeout": "^0.1.1",
     "multer": "^1.4.3",
     "nodemailer": "^6.7.2",
-    "sharp": "^0.28.3",
+    "sharp": "^0.30.5",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "stripe": "^8.169.0",
