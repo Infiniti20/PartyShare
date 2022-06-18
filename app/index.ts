@@ -260,10 +260,16 @@ app.get("/product/:id", async (req, res) => {
     );
   })) as account;
 
-  const subimages = (await db.all(
-    "SELECT imageURL FROM subimages WHERE productId = ?",
-    product.id
+  const subimages = (await cache.getAsync(
+    `subimages-${product.id}`,
+    async () => {
+      return await db.all(
+        "SELECT * FROM subimages WHERE productId = ?",
+        product.id
+      );
+    }
   )) as subimage[];
+
   console.log(subimages);
 
   res.render("product-info/index", {
@@ -325,9 +331,14 @@ app.get("/products/edit/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-  const subimages = (await db.all(
-    "SELECT * FROM subimages WHERE productId = ?",
-    product.id
+  const subimages = (await cache.getAsync(
+    `subimages-${product.id}`,
+    async () => {
+      return await db.all(
+        "SELECT * FROM subimages WHERE productId = ?",
+        product.id
+      );
+    }
   )) as subimage[];
   res.render("product/index", { name: account.name, product, subimages });
 });
@@ -503,52 +514,102 @@ app.post(
   }
 );
 
-app.post("/products/edit/:id", upload.single("image"), async (req, res) => {
-  const uid = (await cache.getAsync(
-    req.cookies.session,
-    async () => {
-      await verifyCookie(req.cookies.session);
-    },
-    3600000
-  )) as string;
-  if (uid === undefined) {
-    res.redirect("/");
+app.post(
+  "/products/edit/:id",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "sub-image-1", maxCount: 1 },
+    { name: "sub-image-2", maxCount: 1 },
+    { name: "sub-image-3", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    const uid = (await cache.getAsync(
+      req.cookies.session,
+      async () => {
+        await verifyCookie(req.cookies.session);
+      },
+      3600000
+    )) as string;
+    if (uid === undefined) {
+      res.redirect("/");
+      return;
+    }
+
+    const product = (await cache.getAsync(req.params.id, async () => {
+      return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
+    })) as product;
+
+    const user = await getUser(uid);
+    if (user.id != product.accountID) {
+      res.redirect("/");
+      return;
+    }
+    const files = req.files as {
+      [fieldname: string]: Express.Multer.File[];
+    };
+
+    const name = product.imageURL;
+
+    if (files["image"]) {
+      const mainImage = files["image"][0];
+      console.log("updated image", name, product.imageURL);
+      const sharpFile = await sharp(mainImage.buffer)
+        .resize({ width: 350, height: 350 })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      await bucket
+        .file(name)
+        .createWriteStream({
+          metadata: { cacheControl: "no-cache, max-age=0" },
+        })
+        .end(sharpFile);
+    }
+    const subimages = (await cache.getAsync(
+      `subimages-${product.id}`,
+      async () => {
+        return await db.all(
+          "SELECT * FROM subimages WHERE productId = ?",
+          product.id
+        );
+      }
+    )) as subimage[];
+
+    const filesUploaded = Object.keys(req.files);
+
+    for (let i = 0; i < Object.keys(req.files).length; i++) {
+      if (filesUploaded[i] == "image") {
+        break
+      }
+      const index = parseInt(filesUploaded[i].split("-")[2])
+      const subimage = files[`sub-image-${index}`][0];
+      const sharpSubFile = await sharp(subimage.buffer)
+        .resize({ width: 350, height: 350 })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      bucket
+        .file(subimages[index-1].imageURL)
+        .createWriteStream({
+          metadata: { cacheControl: "no-cache, max-age=0" },
+        })
+        .end(sharpSubFile);
+    }
+
+    await db.run(
+      "UPDATE products SET name = ?, category = ?, desc = ?, info = ?, quantity = ?, price = ? WHERE id = ?",
+      req.body["desktop-name"] || req.body["mobile-name"],
+      req.body.category,
+      req.body.desc,
+      req.body.info,
+      parseInt(req.body.quantity),
+      parseInt(req.body.price.substring(1)) * 100,
+      req.params.id
+    );
+
+    cache.del("explore");
+    cache.del(req.params.id);
+    res.json({ status: "200 OK", message: "Product successfully updated." });
   }
-  console.log(req.body);
-  const user = await getUser(uid);
-
-  const product = (await cache.getAsync(req.params.id, async () => {
-    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
-  })) as product;
-  const name = product.imageURL;
-
-  if (req.file) {
-    console.log("updated image", name, product.imageURL);
-    const sharpFile = await sharp(req.file.buffer)
-      .resize({ width: 350, height: 350 })
-      .jpeg({ quality: 70 })
-      .toBuffer();
-    await bucket
-      .file(name)
-      .createWriteStream({ metadata: { cacheControl: "no-cache, max-age=0" } })
-      .end(sharpFile);
-  }
-
-  await db.run(
-    "UPDATE products SET name = ?, category = ?, desc = ?, info = ?, quantity = ?, price = ? WHERE id = ?",
-    req.body["desktop-name"] || req.body["mobile-name"],
-    req.body.category,
-    req.body.desc,
-    req.body.info,
-    parseInt(req.body.quantity),
-    parseInt(req.body.price.substring(1)) * 100,
-    req.params.id
-  );
-
-  cache.del("explore");
-  cache.del(req.params.id);
-  res.json({ status: "200 OK", message: "Product successfully updated." });
-});
+);
 
 app.post("/orders/create", async (req, res) => {
   const customer = req.cookies.customerID;

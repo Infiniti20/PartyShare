@@ -45,11 +45,15 @@ document.querySelectorAll(".sub-image").forEach((subimage, index) => {
     fileInput.click();
   });
   fileInput.addEventListener("change", () => {
+    console.log(subimage)
     const file = fileInput.files[0];
     if (file == undefined) {
-      subimage.outerHTML = '<div class="sub-image text">Upload Image</div>';
+      document.querySelectorAll(".sub-image")[index].outerHTML =
+        '<div class="sub-image text">Upload Image</div>';
     } else {
-      subimage.outerHTML = `<img class="sub-image image"/>`;
+      document.querySelectorAll(".sub-image")[
+        index
+      ].outerHTML = `<img class="sub-image image"/>`;
     }
 
     document
@@ -69,7 +73,9 @@ document.querySelectorAll(".sub-image").forEach((subimage, index) => {
     if (file) {
       reader.readAsDataURL(file);
       subImagesAdded += 1;
-      updateAddImageOpts();
+      if (document.querySelector(".add")) {
+        updateAddImageOpts();
+      }
     }
   });
 });
