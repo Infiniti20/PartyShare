@@ -104,7 +104,7 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
   );
   setTimeout(() => {
     toggleLoading();
-    window.location = "/";
+    window.location = `/product/${ev.target.id}`;
   }, 1000);
 });
 
