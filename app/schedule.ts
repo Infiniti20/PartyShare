@@ -1,6 +1,6 @@
 import lt from "long-timeout";
 
-let actions: {[action: string]: Function }= {};
+let actions: { [action: string]: Function } = {};
 
 interface Job {
   date: number;
@@ -8,7 +8,6 @@ interface Job {
   args: any[];
   passed: boolean;
 }
-
 
 function addAction(name: string, action: Function): Function {
   actions[name] = action;
@@ -23,7 +22,7 @@ function addEditAction(func: Function): Function {
 function scheduleJob(func: Function, args: any[], date: Date) {
   let delay = calculateDelay(date);
   lt.setTimeout(() => {
-    console.log("executed")
+    console.log("executed");
     func(...args);
   }, delay);
 }
@@ -56,4 +55,4 @@ async function loadJobs(jobs: { [job: string]: Job }) {
   }
 }
 
-export { addAction, addEditAction, loadJobs, scheduleJob, Job};
+export { addAction, addEditAction, loadJobs, scheduleJob, Job };

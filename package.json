@@ -4,7 +4,11 @@
   "description": "PartyShare Ecommerce site",
   "main": ".\\main.bat",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build":"sqlite3 database/partyshare.db .schema > .schema && node esbuild.config.js",
+    "dev":"node --trace-warnings lib/index.js",
+    "prod":"node lib/index.js > .log",
+    "start":"bash main.sh"
   },
   "repository": {
     "type": "git",

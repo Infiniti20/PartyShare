@@ -2,7 +2,7 @@ h2 {
   font-weight: bold;
 }
 .search {
-  width: 99%;
+  width: calc(100% - 10px);
   border-radius: 50px;
   border: 1px #adadad solid;
   height: 25px;
@@ -29,7 +29,7 @@ form {
   float: left;
 }
 .tag-parent {
-  margin: 0 5px;
+  margin: 0 10px;
 }
 .tag {
   border-radius: 50px;
@@ -55,6 +55,7 @@ form {
   justify-content: center;
   justify-items: center;
   grid-template-columns: repeat( auto-fit, 250px);
+  margin: 10px 5px;
 }
 #product-bar::-webkit-scrollbar {
   display: none;

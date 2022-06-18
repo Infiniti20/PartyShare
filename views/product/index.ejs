@@ -1,52 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <%-include("../components/head.ejs",{name: 'product'})  %> 
-   </head>
-   <body>
-      <%-include('../components/nav.ejs', {acc: true})%>    
-      <%-include('../components/loader.ejs')%>
-      <form class=<%= locals.product ? `edit` : "add" %> id=<%=`${locals.product ? locals.product.id : ""}`%> >
-        <input type="file" accept="image/*" name="image">
-        <div id="flex-product">
-            <div class="column">
-                <% const image = locals.product ? `<img class="product-image" src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${product.imageURL}" alt="">` : '<div class="product-image">Upload Image</div>' ;%>
-                <%-image%>
-                <input class="mobile title" placeholder="New Item" name="mobile-name" value="<%= locals.product ? locals.product.name : ""%>"></input>
-                <input class="cost" value=<%=locals.product ? `$${(locals.product.price / 100).toFixed(2)}` : "$0.00"%> name="price"></input>
-                <div style="text-align:left;margin-top:10px;margin-bottom:10px;">
-                </div>
-                <p class="lessor"><span>By: </span><b><%=name%></b></p>
+
+  <head>
+    <%-include("../components/head.ejs",{name: 'product' }) %>
+  </head>
+
+  <body>
+    <%-include('../components/nav.ejs', {acc: true})%>
+    <%-include('../components/loader.ejs')%>
+    <form class=<%=locals.product ? `edit` : "add" %> id=<%=`${locals.product ? locals.product.id : "" }`%>>
+      <input type="file" accept="image/*" name="image">
+      <input type="file" accept="image/*" name="sub-image-1">
+      <input type="file" accept="image/*" name="sub-image-2">
+      <input type="file" accept="image/*" name="sub-image-3">
+
+
+
+      <div id="flex-product">
+        <div class="column">
+          <%- locals.product ? `<img class="product-image image"
+                                    src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${product.imageURL}"
+                                    alt="">` : '<div class="product-image text">Upload Image</div>' ;%>
+          <div id="sub-container">
+          <% for(let i=0;i< (locals.subimages ? locals.subimages.length : 3);i++){ %>
+          <%- locals.subimages ? `<img class="sub-image image"
+                                            src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${subimages[i].imageURL}"
+                                            alt="">` : '<div class="sub-image text">Upload Image</div>' ;%>
+          <%}%>
+        </div>
+        <input class="mobile title" placeholder="New Item" name="mobile-name"
+          value="<%= locals.product ? locals.product.name : ""%>">
+          <input class="cost" value=<%=locals.product ? `$${(locals.product.price /
+                                        100).toFixed(2)}` : "$0.00" %> name="price">
+          <div style="text-align:left;margin-top:10px;margin-bottom:10px;">
+          </div>
+          <p class="lessor"><span>By: </span><b>
+              <%=name%>
+            </b></p>
+        </div>
+        <div>
+          <input class="desktop title" placeholder="New Item" name="desktop-name"
+            value="<%= locals.product ? locals.product.name : "" %>">
+          <textarea class="product-desc"
+            placeholder="A little bit about the item, such as where it could be placed, or some special details."
+            name="desc"><%= locals.product ? locals.product.desc : "" %></textarea>
+          <div class="about">
+            <div><b>Info</b></div>
+            <textarea
+              placeholder="About the dimensions, and colors of the product. Specifiy whether product comes in set, and quantity of set."
+              name="info"><%= locals.product ? locals.product.info : "" %></textarea>
+          </div>
+        </div>
+
+        <div class="column">
+          <div class="buy-card">
+            <div>
+              <label for="quantity">Quantity:</label>
+              <input type="number" name="quantity" id="quantity" min="1"
+                value='<%= locals.product ? locals.product.quantity : "" %>'>
             </div>
             <div>
-                <input class="desktop title" placeholder="New Item" name="desktop-name" value="<%= locals.product ? locals.product.name : "" %>"></input>
-                <textarea class="product-desc" placeholder="A little bit about the item, such as where it could be placed, or some special details." name="desc"><%= locals.product ? locals.product.desc : "" %></textarea>
-                <div class="about">
-                <div><b>Info</b></div>
-                <textarea placeholder="About the dimensions, and colors of the product. Specifiy whether product comes in set, and quantity of set." name="info"><%= locals.product ? locals.product.info : "" %></textarea>
-                </div>
+              <label for="select">Category:</label>
+              <select name="category" value='<%= locals.product ? locals.product.category: "" %>'>
+                <option value="Decor">Decor</option>
+                <option value="Centerpieces">Centerpieces</option>
+                <option value="Dining">Dining</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
-
-            <div class="column">
-                <div class="buy-card">
-                <div>
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" name="quantity" id="quantity" min="1" value='<%= locals.product ? locals.product.quantity : "" %>' ></input>
-                </div>
-                <div>
-                    <label for="select">Category:</label>
-                    <select name="category" value='<%= locals.product ? locals.product.category: "" %>' >
-                        <option value="Decor">Decor</option>
-                        <option value="Centerpieces">Centerpieces</option>
-                        <option value="Dining">Dining</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <button type="submit"><%= locals.product ? "Save" : "Add" %> </button>
-                </div>
-            </div>
-
+            <button type="submit">
+              <%= locals.product ? "Save" : "Add" %>
+            </button>
+          </div>
         </div>
+
+      </div>
     </form>
-   </body>
+  </body>
+
 </html>

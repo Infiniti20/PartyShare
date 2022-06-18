@@ -53,7 +53,7 @@ document.addEventListener("click", (ev) => {
   const previousSelected = document.querySelector("input.selected");
   previousSelected ? previousSelected.classList.remove("selected") : null;
   input.classList.add("selected");
-  console.log(input, input.children)
+  console.log(input, input.children);
   window.location = encodeURI(
     `/search?query=${document.querySelector("input").value}${
       input ? `&category=${input.nextElementSibling.textContent}` : ""

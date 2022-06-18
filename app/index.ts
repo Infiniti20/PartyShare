@@ -1,23 +1,24 @@
 import utils from "./utils";
 import dotenv from "dotenv";
 dotenv.config();
-const URL = "http://partyshare.ca";
+const URL = process.env.BASE_URL;
 
 // Database setup
 import { Database } from "./database";
-import { order, account, customer, product } from "./types";
+import { order, account, customer, product, subimage } from "./types";
 const db = new Database("database/partyshare.db");
 
-async function createDB() {
-  await db.exec(
-    "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
-  );
-  await db.exec(
-    "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25), accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int )"
-  );
-}
+// async function createDB() {
+//   await db.exec(
+//     "CREATE TABLE IF NOT EXISTS accounts ( id varchar(25) PRIMARY KEY, name varchar(100), email varchar(80), authID varchar(28), location varchar(250) ) "
+//   );
+//   await db.exec(
+//     "CREATE TABLE IF NOT EXISTS products ( name varchar(75), id varchar(25) PRIMARY KEY, accountID varchar(25), imageURL varchar(55), category varchar(12), desc varchar(250), info varchar(200), quantity int, price int, FOREIGN KEY(accountID) REFERENCES accounts(id) )"
+//   );
+//   await db.exec("PRAGMA foreign_keys = ON");
+// }
 
-createDB();
+// createDB();
 
 import { CacheLayer } from "./cache";
 const cache = new CacheLayer();
@@ -183,7 +184,7 @@ async function completeOrder(
       USER: account.name,
       CUSTOMER: customer.name,
       ITEM: product.name,
-      QUANT: quantity,
+      QUANTITY: quantity,
       DATE: new Date(returnDate).toDateString(),
     }
   );
@@ -258,13 +259,26 @@ app.get("/product/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-  console.log(uid);
+
+  const subimages = (await cache.getAsync(
+    `subimages-${product.id}`,
+    async () => {
+      return await db.all(
+        "SELECT * FROM subimages WHERE productId = ?",
+        product.id
+      );
+    }
+  )) as subimage[];
+
+  console.log(subimages);
+
   res.render("product-info/index", {
     product,
     account,
     dates: cachedFireData,
     acc: req.cookies.session,
     uid: uid ?? "",
+    subimages,
   });
 });
 
@@ -317,8 +331,16 @@ app.get("/products/edit/:id", async (req, res) => {
       product.accountID
     );
   })) as account;
-
-  res.render("product/index", { name: account.name, product });
+  const subimages = (await cache.getAsync(
+    `subimages-${product.id}`,
+    async () => {
+      return await db.all(
+        "SELECT * FROM subimages WHERE productId = ?",
+        product.id
+      );
+    }
+  )) as subimage[];
+  res.render("product/index", { name: account.name, product, subimages });
 });
 
 app.get("/checkout", (req, res) => {
@@ -357,10 +379,11 @@ app.get("/accounts/create", async (req, res) => {
     country: "CA",
     business_type: "individual",
   });
+  console.log(`${URL}/accounts/create`);
   const accountLinks = await stripe.accountLinks.create({
     account: account.id,
-    refresh_url: `${URL}/accounts/create`,
-    return_url: `${URL}/accounts/create/${hash}`,
+    refresh_url: `${URL}/accounts/create/`,
+    return_url: `${URL}/accounts/create/${hash}/`,
     type: "account_onboarding",
   });
 
@@ -372,7 +395,8 @@ app.get("/accounts/create/:hash", async (req, res) => {
   res.render("create-account/index");
 });
 
-// * POST REQUESTS
+//! * POST REQUESTS
+
 app.post("/accounts/login", async (req, res) => {
   console.log(req.body);
   const idToken = req.body.idToken;
@@ -404,102 +428,188 @@ app.post("/accounts/create", async (req, res) => {
   res.end(JSON.stringify({ status: "completed" }));
 });
 
-app.post("/products/create", upload.single("image"), async (req, res) => {
-  const uid = (await cache.getAsync(
-    req.cookies.session,
-    async () => {
-      await verifyCookie(req.cookies.session);
-    },
-    3600000
-  )) as string;
-  if (uid === undefined) {
-    res.redirect("/");
-  }
+app.post(
+  "/products/create",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "sub-image-1", maxCount: 1 },
+    { name: "sub-image-2", maxCount: 1 },
+    { name: "sub-image-3", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    const uid = (await cache.getAsync(
+      req.cookies.session,
+      async () => {
+        await verifyCookie(req.cookies.session);
+      },
+      3600000
+    )) as string;
+    if (uid === undefined) {
+      res.redirect("/");
+    }
 
-  const user = await getUser(uid);
+    const user = await getUser(uid);
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const mainImage = files["image"][0];
 
-  const name = `${utils
-    .computeHash(req.file.originalname + Math.random())
-    .replace(/\//g, "|")}.jpeg`;
+    const name = `${utils
+      .computeHash(mainImage.originalname + Math.random())
+      .replace(/\//g, "|")}.jpeg`;
 
-  const sharpFile = await sharp(req.file.buffer)
-    .resize({ width: 350, height: 350 })
-    .jpeg({ quality: 70 })
-    .toBuffer();
-  await bucket.file(name).createWriteStream({metadata: {cacheControl: "no-cache, max-age=0"}}).end(sharpFile);
-
-  const productID = utils.generateUID();
-
-  await db.run(
-    "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    req.body["desktop-name"] || req.body["mobile-name"],
-    productID,
-    user.id,
-    name,
-    req.body.category,
-    req.body.desc,
-    req.body.info,
-    parseInt(req.body.quantity),
-    parseInt(req.body.price.substring(1)) * 100
-  );
-
-  cache.del("explore");
-
-  await firedb.collection("products").doc(productID).set({
-    "1263310860": 1,
-  });
-
-  cache.set(`fire-${productID}`, {
-    "1263310860": 1,
-  });
-
-  res.json({ status: "200 OK", message: "Product successfully added." });
-});
-
-app.post("/products/edit/:id", upload.single("image"), async (req, res) => {
-  const uid = (await cache.getAsync(
-    req.cookies.session,
-    async () => {
-      await verifyCookie(req.cookies.session);
-    },
-    3600000
-  )) as string;
-  if (uid === undefined) {
-    res.redirect("/");
-  }
-  console.log(req.body);
-  const user = await getUser(uid);
-
-  const product = (await cache.getAsync(req.params.id, async () => {
-    return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
-  })) as product;
-  const name = product.imageURL;
-
-  if (req.file) {
-    console.log("updated image", name, product.imageURL)
-    const sharpFile = await sharp(req.file.buffer)
+    const sharpFile = await sharp(mainImage.buffer)
       .resize({ width: 350, height: 350 })
       .jpeg({ quality: 70 })
       .toBuffer();
-    await bucket.file(name).createWriteStream({metadata: {cacheControl: "no-cache, max-age=0"}}).end(sharpFile);
+    await bucket
+      .file(name)
+      .createWriteStream({ metadata: { cacheControl: "no-cache, max-age=0" } })
+      .end(sharpFile);
+
+    console.log(req.files);
+    const productID = utils.generateUID();
+
+    for (let i = 1; i < Object.keys(req.files).length; i++) {
+      const subimage = files[`sub-image-${i}`][0];
+      const subname = `${utils
+        .computeHash(subimage.originalname + Math.random())
+        .replace(/\//g, "|")}.jpeg`;
+      const sharpSubFile = await sharp(subimage.buffer)
+        .resize({ width: 350, height: 350 })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      bucket
+        .file(subname)
+        .createWriteStream({
+          metadata: { cacheControl: "no-cache, max-age=0" },
+        })
+        .end(sharpSubFile);
+
+      await db.run("INSERT INTO subimages VALUES(?,?)", subname, productID);
+    }
+
+    await db.run(
+      "INSERT INTO products VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      req.body["desktop-name"] || req.body["mobile-name"],
+      productID,
+      user.id,
+      name,
+      req.body.category,
+      req.body.desc,
+      req.body.info,
+      parseInt(req.body.quantity),
+      parseInt(req.body.price.substring(1)) * 100
+    );
+
+    cache.del("explore");
+
+    await firedb.collection("products").doc(productID).set({
+      "1263310860": 1,
+    });
+
+    cache.set(`fire-${productID}`, {
+      "1263310860": 1,
+    });
+
+    res.json({ status: "200 OK", message: "Product successfully added." });
   }
+);
 
-  await db.run(
-    "UPDATE products SET name = ?, category = ?, desc = ?, info = ?, quantity = ?, price = ? WHERE id = ?",
-    req.body["desktop-name"] || req.body["mobile-name"],
-    req.body.category,
-    req.body.desc,
-    req.body.info,
-    parseInt(req.body.quantity),
-    parseInt(req.body.price.substring(1)) * 100,
-    req.params.id
-  );
+app.post(
+  "/products/edit/:id",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "sub-image-1", maxCount: 1 },
+    { name: "sub-image-2", maxCount: 1 },
+    { name: "sub-image-3", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    const uid = (await cache.getAsync(
+      req.cookies.session,
+      async () => {
+        await verifyCookie(req.cookies.session);
+      },
+      3600000
+    )) as string;
+    if (uid === undefined) {
+      res.redirect("/");
+      return;
+    }
 
-  cache.del("explore");
-  cache.del(req.params.id)
-  res.json({ status: "200 OK", message: "Product successfully updated." });
+    const product = (await cache.getAsync(req.params.id, async () => {
+      return await db.get("SELECT * FROM products WHERE id = ?", req.params.id);
+    })) as product;
 
-});
+    const user = await getUser(uid);
+    if (user.id != product.accountID) {
+      res.redirect("/");
+      return;
+    }
+    const files = req.files as {
+      [fieldname: string]: Express.Multer.File[];
+    };
+
+    const name = product.imageURL;
+
+    if (files["image"]) {
+      const mainImage = files["image"][0];
+      console.log("updated image", name, product.imageURL);
+      const sharpFile = await sharp(mainImage.buffer)
+        .resize({ width: 350, height: 350 })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      await bucket
+        .file(name)
+        .createWriteStream({
+          metadata: { cacheControl: "no-cache, max-age=0" },
+        })
+        .end(sharpFile);
+    }
+    const subimages = (await cache.getAsync(
+      `subimages-${product.id}`,
+      async () => {
+        return await db.all(
+          "SELECT * FROM subimages WHERE productId = ?",
+          product.id
+        );
+      }
+    )) as subimage[];
+
+    const filesUploaded = Object.keys(req.files);
+
+    for (let i = 0; i < Object.keys(req.files).length; i++) {
+      if (filesUploaded[i] == "image") {
+        break
+      }
+      const index = parseInt(filesUploaded[i].split("-")[2])
+      const subimage = files[`sub-image-${index}`][0];
+      const sharpSubFile = await sharp(subimage.buffer)
+        .resize({ width: 350, height: 350 })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      bucket
+        .file(subimages[index-1].imageURL)
+        .createWriteStream({
+          metadata: { cacheControl: "no-cache, max-age=0" },
+        })
+        .end(sharpSubFile);
+    }
+
+    await db.run(
+      "UPDATE products SET name = ?, category = ?, desc = ?, info = ?, quantity = ?, price = ? WHERE id = ?",
+      req.body["desktop-name"] || req.body["mobile-name"],
+      req.body.category,
+      req.body.desc,
+      req.body.info,
+      parseInt(req.body.quantity),
+      parseInt(req.body.price.substring(1)) * 100,
+      req.params.id
+    );
+
+    cache.del("explore");
+    cache.del(req.params.id);
+    res.json({ status: "200 OK", message: "Product successfully updated." });
+  }
+);
 
 app.post("/orders/create", async (req, res) => {
   const customer = req.cookies.customerID;
@@ -576,8 +686,21 @@ app.post("/orders/create", async (req, res) => {
     DATE: new Date(info.startDate).toDateString(),
     DATE2: new Date(info.endDate).toDateString(),
   });
-
   const total = product.price * info.quantity * info.daysRented;
+
+  console.log(info, [
+    product.id,
+    total,
+    {
+      id: customer,
+      name: req.body.name,
+      email: req.body.email,
+      quantity: info.quantity,
+    },
+    card,
+    info.endDate,
+  ]);
+
   addJob(
     "completeOrder",
     completeOrder,
@@ -588,10 +711,10 @@ app.post("/orders/create", async (req, res) => {
         id: customer,
         name: req.body.name,
         email: req.body.email,
-        quantity: info.quantity,
       },
       card,
       info.endDate,
+      info.quantity,
     ],
     new Date(info.startDate)
   );
@@ -613,8 +736,6 @@ app.post("/checkout", async (req, res) => {
   const { startDate, endDate, quantity, productID } = req.body;
 
   const daysRented = Math.max((endDate - startDate) / 86400000, 1);
-
-  console.log()
 
   const product = (await cache.getAsync(productID, async () => {
     return await db.get("SELECT * FROM products WHERE id = ?", productID);
@@ -656,8 +777,8 @@ app.delete("/products/delete/", async (req, res) => {
     await db.run("DELETE FROM products WHERE id = ?", req.body.id);
   }
   cache.del(req.body.id);
-  cache.del("explore")
-  res.json({ status: "200 OK", message: "Product successfully deleted." })
+  cache.del("explore");
+  res.json({ status: "200 OK", message: "Product successfully deleted." });
 });
 // * GET REQUESTS
 app.get("/logout", async (req, res) => {
