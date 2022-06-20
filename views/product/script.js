@@ -45,7 +45,7 @@ document.querySelectorAll(".sub-image").forEach((subimage, index) => {
     fileInput.click();
   });
   fileInput.addEventListener("change", () => {
-    console.log(subimage)
+    console.log(subimage);
     const file = fileInput.files[0];
     if (file == undefined) {
       document.querySelectorAll(".sub-image")[index].outerHTML =
@@ -104,7 +104,14 @@ document.querySelector("form").addEventListener("submit", async (ev) => {
   );
   setTimeout(() => {
     toggleLoading();
-    window.location = `/product/${ev.target.id}`;
+    if (document.querySelector(".add")) {
+      window.location = "/";
+
+      return;
+    } else {
+      window.location = `/product/${ev.target.id}`;
+      return;
+    }
   }, 1000);
 });
 
