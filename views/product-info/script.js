@@ -151,3 +151,51 @@ if (document.querySelector(".delete")) {
       window.location = `products/edit/${product.id}/`;
     });
 }
+
+Number.prototype.mod = function (n) {
+  return ((this % n) + n) % n;
+};
+
+let slideIndex=0;
+const slides = document.querySelectorAll(".gallery-image");
+
+function changeSlides(n) {
+  slides[slideIndex].style.display = "none";
+  slideIndex = (slideIndex + n).mod(document.querySelectorAll(".gallery-image").length);
+  slides[slideIndex].style.display = "inline";
+}
+
+function openGallery(n) {
+  slides[slideIndex].style.display = "none";
+  slideIndex = n;
+  changeSlides(0);
+  document.querySelector(".gallery").style.display = "grid";
+}
+
+document.querySelector(".prev").addEventListener("click", function (e) {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  changeSlides(-1);
+});
+
+document.querySelector(".next").addEventListener("click", function (e) {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  changeSlides(1);
+});
+
+document.querySelector("#image").addEventListener("click", function () {
+  openGallery(0);
+});
+
+const subimages = document.querySelectorAll(".sub");
+
+for (let i = 0; i < subimages.length; i++) {
+  subimages[i].addEventListener("click", function () {
+    openGallery(i + 1);
+  });
+}
+
+document.querySelector(".gallery").addEventListener("click", function (e) {
+  document.querySelector(".gallery").style.display = "none";
+});

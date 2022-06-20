@@ -1,29 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
   <head>
     <%-include("../components/head.ejs",{name: 'product-info', scripts:
     ["https://cdn.jsdelivr.net/npm/flatpickr"]}) %>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   </head>
+
   <body>
     <%-include('../components/nav.ejs', {acc})%>
     <div id="product">
       <div class="column">
-        <img
-          src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/<%= product.imageURL %> "
-          alt=""
-          id="image"
-        />
+        <img src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/<%= product.imageURL %> " alt=""
+          id="image" />
         <div id="sub-container">
           <% subimages.forEach(image => { %>
-          <img
-            src=<%= `https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${image.imageURL}` %>
-            alt=""
-            class="sub"
-          />
+          <img src=<%= `https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${image.imageURL}` %> alt=""
+            class="sub" />
           <% }) %>
 
         </div>
@@ -69,5 +62,16 @@
     <div class="hidden">
       <%=JSON.stringify(dates)%>|||<%=JSON.stringify(product)%>
     </div>
+    <div class="gallery">
+      <a class="prev">&#10094;</a>
+      <img src="https://storage.googleapis.com/partyshare-2e5c5.appspot.com/<%= product.imageURL %> " alt=""
+        class="gallery-image" />
+      <% subimages.forEach(image => { %>
+      <img src=<%= `https://storage.googleapis.com/partyshare-2e5c5.appspot.com/${image.imageURL}` %> alt=""
+        class="gallery-image" />
+      <% }) %>
+      <a class="next">&#10095;</a>
+
   </body>
+
 </html>
