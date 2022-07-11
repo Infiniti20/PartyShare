@@ -1,8 +1,8 @@
-document.querySelectorAll(".product").forEach((product) => {
-  product.addEventListener("click", () => {
-    location = "/product/" + product.id;
-  });
-});
+// document.querySelectorAll(".product").forEach((product) => {
+//   product.addEventListener("click", () => {
+//     location = "/product/" + product.id;
+//   });
+// });
 
 const searchParams = new URL(window.location).searchParams;
 document.querySelector("input").value = searchParams.get("query") || "";
