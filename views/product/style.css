@@ -128,6 +128,7 @@ div.about > div {
   padding: 10px;
 }
 .title {
+  display:block;
   margin-left: 20px;
   margin-top: 20px;
   text-align: left;
