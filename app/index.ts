@@ -795,7 +795,7 @@ app.get("/logout", async (req, res) => {
 });
 
 
-app.listen(80, async () => {
+app.listen(3000, async () => {
   console.log("Server running...");
   console.log("");
   await persistSchedule();
