@@ -298,6 +298,14 @@ app.get("/faq", async (req, res) => {
   });
 });
 
+app.get("/about-us", async(req,res)=>{
+  res.render("about-us/index")
+})
+
+app.get("/contact",async (req, res) => {
+  res.render("embed/index", {content: `<p>You can contact me <a href="mailto:janakhosa@gmail.com">here</a> for any special inquiries.</p>`})
+})
+
 app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
 });
@@ -785,6 +793,7 @@ app.get("/logout", async (req, res) => {
   res.clearCookie("session");
   res.redirect("/");
 });
+
 
 app.listen(80, async () => {
   console.log("Server running...");
