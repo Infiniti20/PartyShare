@@ -7,7 +7,7 @@
   height: 300px;
   color: var(--darkgrey);
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   justify-content: center;
   align-items: center;
   margin: 20px;
@@ -211,6 +211,9 @@ label {
   }
   .cost {
     margin-top: 0;
+  }
+  .product-image{
+    display: inline-flex;
   }
 }
 
