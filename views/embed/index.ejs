@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <%-include("../components/head.ejs",{name: 'embed'})  %>
+    </head>
+
+    <body>
+        <%-include('../components/nav.ejs', {acc: false})%>
+        <div class="content">
+            <div><%- content %></div>
+        </div>
+    </body>
+
+</html>
