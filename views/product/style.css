@@ -219,5 +219,5 @@ label {
 
 #flex-product > div:nth-child(1) {
   margin-bottom: 20px;
-  width:340px;
+  /* width:340px; */
 }
