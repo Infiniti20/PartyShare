@@ -86,7 +86,7 @@ b {
   height: 80px;
   width: 500px;
 }
-.mobile {
+.mobile.title{
   display: none;
 }
 .about br {
@@ -182,7 +182,7 @@ label {
   .desktop {
     display: none;
   }
-  .mobile {
+  .mobile.title{
     display: block;
   }
   .about {
