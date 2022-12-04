@@ -32,7 +32,12 @@
       <div>
         <h2 id="desktop-title"><%= product.name %></h2>
         <div id="desc"><%=product.desc%></div>
-        <div id="info"><b>Info</b><br /><%=product.info%></div>
+      <% if (product.info !== "") { %>
+       <div id="info"><b>Info</b><br /><%=product.info%></div>
+      <% } else {%>
+        <div id="info"></div>
+      <% }%>
+        
       </div>
       <div class="column" id="checkout-container">
         <form>
