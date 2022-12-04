@@ -3,7 +3,7 @@
 
   <head>
     <%-include("../components/head.ejs",{name: 'product-info', scripts:
-    ["https://cdn.jsdelivr.net/npm/flatpickr"]}) %>
+    ["https://cdn.jsdelivr.net/npm/flatpickr"], title:`${product.name} - PartyShare`, description: product.desc}) %>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   </head>
 
