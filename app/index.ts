@@ -614,7 +614,7 @@ app.post(
       req.body.desc,
       req.body.info,
       parseInt(req.body.quantity),
-      parseInt(req.body.price.substring(1)) * 100,
+      parseFloat(req.body.price.substring(1)) * 100,
       req.params.id
     );
 
