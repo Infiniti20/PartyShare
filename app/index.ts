@@ -298,13 +298,15 @@ app.get("/faq", async (req, res) => {
   });
 });
 
-app.get("/about-us", async(req,res)=>{
-  res.render("about-us/index")
-})
+app.get("/about-us", async (req, res) => {
+  res.render("about-us/index");
+});
 
-app.get("/contact",async (req, res) => {
-  res.render("embed/index", {content: `<p>You can contact me <a href="mailto:janakhosa@gmail.com">here</a> for any special inquiries.</p>`})
-})
+app.get("/contact", async (req, res) => {
+  res.render("embed/index", {
+    content: `<p>You can contact me <a href="mailto:janakhosa@gmail.com">here</a> for any special inquiries.</p>`,
+  });
+});
 
 app.get("/vendor-login", async (req, res) => {
   res.render("vendor-login/index", { acc: req.cookies.session });
@@ -556,17 +558,17 @@ app.post(
       [fieldname: string]: Express.Multer.File[];
     };
 
-    const name = product.imageURL;
+    const imageName = product.imageURL;
 
     if (files["image"]) {
       const mainImage = files["image"][0];
-      console.log("updated image", name, product.imageURL);
+      console.log("updated image", imageName, product.imageURL);
       const sharpFile = await sharp(mainImage.buffer)
         .resize({ width: 350, height: 350 })
         .jpeg({ quality: 70 })
         .toBuffer();
       await bucket
-        .file(name)
+        .file(imageName)
         .createWriteStream({
           metadata: { cacheControl: "no-cache, max-age=0" },
         })
@@ -586,25 +588,28 @@ app.post(
 
     for (let i = 0; i < Object.keys(req.files).length; i++) {
       if (filesUploaded[i] == "image") {
-        break
+        break;
       }
-      const index = parseInt(filesUploaded[i].split("-")[2])
+      const index = parseInt(filesUploaded[i].split("-")[2]);
       const subimage = files[`sub-image-${index}`][0];
       const sharpSubFile = await sharp(subimage.buffer)
         .resize({ width: 350, height: 350 })
         .jpeg({ quality: 70 })
         .toBuffer();
       bucket
-        .file(subimages[index-1].imageURL)
+        .file(subimages[index - 1].imageURL)
         .createWriteStream({
           metadata: { cacheControl: "no-cache, max-age=0" },
         })
         .end(sharpSubFile);
     }
-
+    let name:string =
+      req.body["desktop-name"] === product.name
+        ? req.body["mobile-name"]
+        : req.body["desktop-name"];
     await db.run(
       "UPDATE products SET name = ?, category = ?, desc = ?, info = ?, quantity = ?, price = ? WHERE id = ?",
-      req.body["desktop-name"] || req.body["mobile-name"],
+      name,
       req.body.category,
       req.body.desc,
       req.body.info,
@@ -793,7 +798,6 @@ app.get("/logout", async (req, res) => {
   res.clearCookie("session");
   res.redirect("/");
 });
-
 
 app.listen(3000, async () => {
   console.log("Server running...");
